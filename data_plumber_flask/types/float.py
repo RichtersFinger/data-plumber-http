@@ -1,4 +1,4 @@
 from . import _DPType
 
-class String(_DPType):
+class Float(_DPType):
     pass

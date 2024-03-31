@@ -1,4 +1,4 @@
 from . import _DPKey
 
-class Property(_DPKey):
+class OneOf(_DPKey):
     pass
