@@ -1,4 +1,7 @@
+from data_plumber import Pipeline
+
 from . import _DPType
 
 class Object(_DPType):
-    pass
+    def assemble(self) -> Pipeline:
+        return Pipeline()
