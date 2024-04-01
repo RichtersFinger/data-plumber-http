@@ -5,6 +5,11 @@ Run with
 pytest -v -s --cov=data_plumber_flask.keys --cov=data_plumber_flask.types
 """
 
+# * missing tests: additional properties
+# * __or__ for types
+# * additional validation in model
+
+
 import pytest
 from data_plumber import Pipeline
 
@@ -33,6 +38,22 @@ def test_object_pipeline_run_basic():
 
     output = pipeline.run(json={"another-string": "test-string"})
     assert output.data == {}
+    assert output.last_status == 0
+
+
+def test_property_fill_with_none():
+    """Test argument `fill_with_none` of `Property`."""
+
+    output = Object(
+        properties={Property("string", fill_with_none=False): String()}
+    ).assemble().run(json={"another-string": "test-string"})
+    assert output.data == {}
+    assert output.last_status == 0
+
+    output = Object(
+        properties={Property("string", fill_with_none=True): String()}
+    ).assemble().run(json={"another-string": "test-string"})
+    assert output.data == {"string": None}
     assert output.last_status == 0
 
 
