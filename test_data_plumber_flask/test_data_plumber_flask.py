@@ -273,9 +273,9 @@ def test_object_nested(json, status):
 
 
 @pytest.mark.parametrize(
-    "reject",
+    "accept",
     [
-        True, False
+        ["string"], None
     ],
     ids=["reject_unknown", "accept_unknown"]
 )
@@ -286,14 +286,14 @@ def test_object_nested(json, status):
     ],
     ids=["json_no_unknown", "json_has_unknown"]
 )
-def test_object_unknown(reject, json):
-    """Test nested `Object`s."""
+def test_object_unknown(accept, json):
+    """Test property `accept_only` in `Object`."""
 
     output = Object(
         properties={Property("string"): String()},
-        reject_unknown=reject
+        accept_only=accept
     ).assemble().run(json=json)
-    if not reject and "string" in json:
-        assert output.last_status == 0
-    else:
+    if accept is not None and "another-string" in json:
         assert output.last_status == 400
+    else:
+        assert output.last_status == 0

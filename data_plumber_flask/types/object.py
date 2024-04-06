@@ -19,7 +19,8 @@ class _ProblemInfo:
 class Responses():
     GOOD = _ProblemInfo(0, "")
     MISSING_OPTIONAL = _ProblemInfo(1, "")
-    MISSING_REQUIRED = _ProblemInfo(400, "Missing required")
+    NOT_ALLOWED = _ProblemInfo(400, "Argument not allowed.")
+    MISSING_REQUIRED = _ProblemInfo(400, "Missing required.")
     BAD_TYPE = _ProblemInfo(422, "Bad type.")
 
 
@@ -35,8 +36,14 @@ class Object(_DPType):
                   `Object`
                   (default `None`)
     additional_properties -- type for implicitly expected contents of
-                             this `Object`
+                             this `Object` (mutually exclusive with
+                             `accept_only`)
                              (default `None`)
+    accept_only -- if set, on execution a `json` is rejected with 400
+                   status if it contains a key that is not in
+                   `accept_only` (mutually exclusive with
+                   `additional_properties`)
+                   (default `None`)
     """
     TYPE = dict
 
@@ -44,7 +51,8 @@ class Object(_DPType):
         self,
         model: Optional[type] = None,
         properties: Optional[Properties] = None,
-        additional_properties: Optional[_DPType] = None
+        additional_properties: Optional[_DPType] = None,
+        accept_only: Optional[list[str]] = None
     ) -> None:
         self._model = model or dict
         self._properties = properties
@@ -61,7 +69,26 @@ class Object(_DPType):
                 )
             )
 
+        if additional_properties and accept_only:
+            raise ValueError(
+                f"Value of 'additional_properties' ({additional_properties}) "
+                + f"conflicts with value of 'accept_only' ({accept_only})."
+            )
         self._additional_properties = additional_properties
+        self._accept_only = accept_only
+
+    @staticmethod
+    def _reject_unknown_args(accepted):
+        return Stage(
+            primer=lambda json, **kwargs: next(
+                (k for k in json.keys() if k not in accepted),
+                None
+            ),
+            status=lambda primer, **kwargs:
+                0 if not primer else Responses.NOT_ALLOWED.status,
+            message=lambda primer, **kwargs:
+                "" if not primer else Responses.NOT_ALLOWED.msg
+        )
 
     @staticmethod
     def _arg_exists_hard(k):
@@ -132,6 +159,10 @@ class Object(_DPType):
             exit_on_status=lambda status: status >= 400,
             finalize_output=finalizer
         )
+        if self._accept_only is not None:
+            p.append(
+                self._reject_unknown_args(self._accept_only)
+            )
         for k, v in self._properties.items():
             if k.required and k.default is None:
                 p.append(k.origin, **{k.origin: self._arg_exists_hard(k)})
