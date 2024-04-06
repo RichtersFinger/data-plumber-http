@@ -18,7 +18,7 @@ class _ProblemInfo:
 class Responses():
     GOOD = _ProblemInfo(0, "")
     MISSING_OPTIONAL = _ProblemInfo(1, "")
-    NOT_ALLOWED = _ProblemInfo(
+    UNKNOWN_PROPERTY = _ProblemInfo(
         400,
         "Argument '{}' in '{}' not allowed (accepted: {})."
     )
@@ -94,10 +94,10 @@ class Object(_DPType):
             ),
             status=lambda primer, **kwargs:
                 Responses.GOOD.status if not primer
-                else Responses.NOT_ALLOWED.status,
+                else Responses.UNKNOWN_PROPERTY.status,
             message=lambda primer, **kwargs:
                 Responses.GOOD.msg if not primer
-                else Responses.NOT_ALLOWED.msg.format(
+                else Responses.UNKNOWN_PROPERTY.msg.format(
                     primer,
                     loc,
                     ", ".join(map(lambda x: f"'{x}'", accepted))
