@@ -48,7 +48,19 @@ class Object(_DPType):
     ) -> None:
         self._model = model or dict
         self._properties = properties
-        # TODO: validate no duplicate origins or names in properties
+
+        if len(set(k.name for k in properties.keys())) < len(properties):
+            names = set()
+            raise ValueError(
+                "Conflicting property name(s) in Object: "
+                + str(
+                    [
+                        k.name for k in properties.keys()
+                        if k.name in names or names.add(k.name)
+                    ]
+                )
+            )
+
         self._additional_properties = additional_properties
 
     @staticmethod

@@ -157,6 +157,26 @@ def test_property_origin_name():
     assert output.data == {"model_arg": "test-string"}
 
 
+def test_object_key_value_conflict_in_properties():
+    """Test constructor of `Object` regarding duplicate property names."""
+
+    # this is fine
+    Object(
+        properties={
+            Property(origin="string", name="model_arg"): String(),
+            Property(origin="string", name="model_arg2"): String()
+        }
+    )
+
+    with pytest.raises(ValueError):
+        Object(
+            properties={
+                Property(origin="string", name="model_arg"): String(),
+                Property(origin="string", name="model_arg"): String()
+            }
+        )
+
+
 def test_object_model():
     """Test argument `model` of `Object`."""
     class SomeModel:
