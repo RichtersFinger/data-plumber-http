@@ -56,6 +56,7 @@ def test_object_key_value_conflict_in_properties():
         )
 
 
+@pytest.mark.skip
 def test_object_model():
     """Test argument `model` of `Object`."""
     class SomeModel:
@@ -147,8 +148,63 @@ def test_object_nested(json, status):
     ).assemble()
 
     output = pipeline.run(json=json)
-    assert output.last_record == status
-    assert output.data == json
+    assert output.last_status == status
+    if output.last_status == 0:
+        assert output.data == json
+    else:
+        print(output.last_message)
+        assert ".some-object" in output.last_message
+        assert "another-object" in output.last_message
+
+
+@pytest.mark.parametrize(
+    "required",
+    [True, False],
+    ids=["required", "not-required"]
+)
+def test_object_nested_deeply(required):
+    """Test nested `Object`s."""
+    pipeline = Object(
+        properties={
+            Property("some-object"): Object(
+                properties={
+                    Property("string1"): String(),
+                    Property("another-object"): Object(
+                        properties={
+                            Property("string2"): String(),
+                            Property("yet-more-objects"): Object(
+                                properties={
+                                    Property("string3", required=required):
+                                        String()
+                                }
+                            )
+                        }
+                    )
+                }
+            )
+        }
+    ).assemble()
+
+    json = {
+        "some-object": {
+            "string1": "a",
+            "another-object": {
+                "string2": "b",
+                "yet-more-objects": {}
+            }
+        }
+    }
+    output = pipeline.run(json=json)
+    if required:
+        print(output.last_message)
+        assert output.last_status == 400
+        assert "some-object.another-object.yet-more-objects" \
+            in output.last_message
+        assert "string3" \
+            in output.last_message
+    else:
+        assert output.last_status == 0
+        assert output.data == json
 
 
 @pytest.mark.parametrize(

@@ -93,9 +93,10 @@ class Object(_DPType):
                 None
             ),
             status=lambda primer, **kwargs:
-                0 if not primer else Responses.NOT_ALLOWED.status,
+                Responses.GOOD.status if not primer
+                else Responses.NOT_ALLOWED.status,
             message=lambda primer, **kwargs:
-                "" if not primer
+                Responses.GOOD.msg if not primer
                 else Responses.NOT_ALLOWED.msg.format(
                     primer,
                     loc,
@@ -108,9 +109,10 @@ class Object(_DPType):
         return Stage(
             primer=lambda json, **kwargs: k.origin in json,
             status=lambda primer, **kwargs:
-                0 if primer else Responses.MISSING_REQUIRED.status,
+                Responses.GOOD.status if primer
+                else Responses.MISSING_REQUIRED.status,
             message=lambda primer, **kwargs:
-                "" if primer
+                Responses.GOOD.msg if primer
                 else Responses.MISSING_REQUIRED.msg.format(
                     loc,
                     k.origin
@@ -122,7 +124,7 @@ class Object(_DPType):
         return Stage(
             primer=lambda json, **kwargs: k.origin in json,
             status=lambda primer, **kwargs:
-                0 if primer else Responses.MISSING_OPTIONAL.status,
+                Responses.GOOD.status if primer else Responses.MISSING_OPTIONAL.status,
             message=lambda primer, **kwargs:
                 "" if primer else Responses.MISSING_OPTIONAL.msg
         )
@@ -133,15 +135,33 @@ class Object(_DPType):
             requires={k.origin: Responses.GOOD.status},
             primer=lambda json, **kwargs: isinstance(json[k.origin], v.TYPE),
             status=lambda primer, **kwargs:
-                0 if primer else Responses.BAD_TYPE.status,
+                Responses.GOOD.status if primer else Responses.BAD_TYPE.status,
             message=lambda primer, json, **kwargs:
-                "" if primer
+                Responses.GOOD.msg if primer
                 else Responses.BAD_TYPE.msg.format(
                     k.origin,
                     loc,
                     v.TYPE.__name__,
                     type(json[k.origin]).__name__
                 )
+        )
+
+    @staticmethod
+    def _nested_object(k, v, loc):
+        return Stage(
+            requires={k.origin: Responses.GOOD.status},
+            primer=lambda json, **kwargs:
+                v.assemble(_loc=loc).run(
+                    json=json[k.origin]
+                ),
+            action=lambda primer, out, **kwargs:
+                out.update(
+                    {k.name: primer.data}
+                    if primer.last_status == Responses.GOOD.status
+                    else {}
+                ),
+            status=lambda primer, **kwargs: primer.last_status,
+            message=lambda primer, **kwargs: primer.last_message
         )
 
     @staticmethod
@@ -196,7 +216,13 @@ class Object(_DPType):
             else:
                 p.append(k.origin, **{k.origin: self._arg_exists_soft(k)})
             p.append(self._arg_has_type(k, v, _loc or "."))
-            # TODO: add v.validate()-Stage
+            if isinstance(v, Object):
+                p.append(
+                    self._nested_object(k, v, (_loc or "") + "." + k.origin)
+                )
+            else:
+                # TODO: add v.validate()-Stage
+                pass
             # TODO: add model-specific validation
             p.append(self._output(k))
             p.append(self._set_default(k))
