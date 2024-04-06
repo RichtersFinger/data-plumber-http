@@ -8,7 +8,7 @@ requirements = \
         .strip() \
         .split("\n")
 test_requirements = \
-    (Path(__file__).parent / "test_data_plumber_flask" / "test_requirements.txt") \
+    (Path(__file__).parent / "tests" / "test_requirements.txt") \
         .read_text(encoding="utf8") \
         .strip() \
         .split("\n")
