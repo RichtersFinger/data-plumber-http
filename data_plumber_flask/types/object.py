@@ -1,6 +1,5 @@
 from typing import TypeAlias, Mapping, Optional
 from dataclasses import dataclass
-from functools import partial
 
 from data_plumber import Pipeline, Stage
 
@@ -19,9 +18,18 @@ class _ProblemInfo:
 class Responses():
     GOOD = _ProblemInfo(0, "")
     MISSING_OPTIONAL = _ProblemInfo(1, "")
-    NOT_ALLOWED = _ProblemInfo(400, "Argument not allowed.")
-    MISSING_REQUIRED = _ProblemInfo(400, "Missing required.")
-    BAD_TYPE = _ProblemInfo(422, "Bad type.")
+    NOT_ALLOWED = _ProblemInfo(
+        400,
+        "Argument '{}' in '{}' not allowed (accepted: {})."
+    )
+    MISSING_REQUIRED = _ProblemInfo(
+        400,
+        "Object '{}' missing required property '{}'."
+    )
+    BAD_TYPE = _ProblemInfo(
+        422,
+        "Argument '{}' in '{}' has bad type. Expected '{}' but found '{}'."
+    )
 
 
 class Object(_DPType):
@@ -78,7 +86,7 @@ class Object(_DPType):
         self._accept_only = accept_only
 
     @staticmethod
-    def _reject_unknown_args(accepted):
+    def _reject_unknown_args(accepted, loc):
         return Stage(
             primer=lambda json, **kwargs: next(
                 (k for k in json.keys() if k not in accepted),
@@ -87,17 +95,26 @@ class Object(_DPType):
             status=lambda primer, **kwargs:
                 0 if not primer else Responses.NOT_ALLOWED.status,
             message=lambda primer, **kwargs:
-                "" if not primer else Responses.NOT_ALLOWED.msg
+                "" if not primer
+                else Responses.NOT_ALLOWED.msg.format(
+                    primer,
+                    loc,
+                    ", ".join(map(lambda x: f"'{x}'", accepted))
+                )
         )
 
     @staticmethod
-    def _arg_exists_hard(k):
+    def _arg_exists_hard(k, loc):
         return Stage(
             primer=lambda json, **kwargs: k.origin in json,
             status=lambda primer, **kwargs:
                 0 if primer else Responses.MISSING_REQUIRED.status,
             message=lambda primer, **kwargs:
-                "" if primer else Responses.MISSING_REQUIRED.msg
+                "" if primer
+                else Responses.MISSING_REQUIRED.msg.format(
+                    loc,
+                    k.origin
+                )
         )
 
     @staticmethod
@@ -111,14 +128,20 @@ class Object(_DPType):
         )
 
     @staticmethod
-    def _arg_has_type(k, v):
+    def _arg_has_type(k, v, loc):
         return Stage(
             requires={k.origin: Responses.GOOD.status},
             primer=lambda json, **kwargs: isinstance(json[k.origin], v.TYPE),
             status=lambda primer, **kwargs:
                 0 if primer else Responses.BAD_TYPE.status,
-            message=lambda primer, **kwargs:
-                "" if primer else Responses.BAD_TYPE.msg
+            message=lambda primer, json, **kwargs:
+                "" if primer
+                else Responses.BAD_TYPE.msg.format(
+                    k.origin,
+                    loc,
+                    v.TYPE.__name__,
+                    type(json[k.origin]).__name__
+                )
         )
 
     @staticmethod
@@ -149,7 +172,7 @@ class Object(_DPType):
                 None if primer is None else out.update({k.name: primer})
         )
 
-    def assemble(self) -> Pipeline:
+    def assemble(self, _loc: Optional[str] = None) -> Pipeline:
         """
         Returns `Pipeline` that processes a `json`-input.
         """
@@ -161,14 +184,18 @@ class Object(_DPType):
         )
         if self._accept_only is not None:
             p.append(
-                self._reject_unknown_args(self._accept_only)
+                self._reject_unknown_args(self._accept_only, _loc or ".")
             )
         for k, v in self._properties.items():
             if k.required and k.default is None:
-                p.append(k.origin, **{k.origin: self._arg_exists_hard(k)})
+                p.append(
+                    k.origin, **{
+                        k.origin: self._arg_exists_hard(k, _loc or ".")
+                    }
+                )
             else:
                 p.append(k.origin, **{k.origin: self._arg_exists_soft(k)})
-            p.append(self._arg_has_type(k, v))
+            p.append(self._arg_has_type(k, v, _loc or "."))
             # TODO: add v.validate()-Stage
             # TODO: add model-specific validation
             p.append(self._output(k))

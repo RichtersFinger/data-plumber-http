@@ -141,6 +141,8 @@ def test_property_required_default(default):
         assert output.data["string"] == default
     else:
         assert output.last_status == 400
+        assert "missing" in output.last_message.lower()
+        assert "string" in output.last_message
         assert output.data == {}
 
 
@@ -295,5 +297,6 @@ def test_object_unknown(accept, json):
     ).assemble().run(json=json)
     if accept is not None and "another-string" in json:
         assert output.last_status == 400
+        assert "another-string" in output.last_message
     else:
         assert output.last_status == 0
