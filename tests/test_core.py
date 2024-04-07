@@ -326,6 +326,38 @@ def test_object_nested_deeply(required):
         assert output.data == json
 
 
+def test_object_nested_with_default():
+    """Test nested `Object`s with default."""
+    pipeline = Object(
+        properties={
+            Property("some-object"): Object(
+                properties={
+                    Property(
+                        "another-object", default=lambda **kwargs: None
+                    ): Object(
+                        properties={
+                            Property("string2"): String()
+                        }
+                    )
+                }
+            )
+        }
+    ).assemble()
+
+    json = {
+        "some-object": {
+            "string1": "a"
+        }
+    }
+    output = pipeline.run(json=json)
+    assert output.last_status == Responses.GOOD.status
+    assert output.data == {
+        "some-object": {
+            "another-object": None
+        }
+    }
+
+
 @pytest.mark.parametrize(
     "accept",
     [

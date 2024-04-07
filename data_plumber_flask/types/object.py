@@ -1,35 +1,12 @@
-from typing import TypeAlias, Mapping, Optional
-from dataclasses import dataclass
+from typing import TypeAlias, Mapping, Optional, Any
 
 from data_plumber import Pipeline, Stage
 
 from data_plumber_flask.keys import _DPKey
-from . import _DPType
+from . import _DPType, Responses
+
 
 Properties: TypeAlias = Mapping[_DPKey, "_DPType | Properties"]
-
-
-@dataclass
-class _ProblemInfo:
-    status: int
-    msg: str
-
-
-class Responses():
-    GOOD = _ProblemInfo(0, "")
-    MISSING_OPTIONAL = _ProblemInfo(1, "")
-    UNKNOWN_PROPERTY = _ProblemInfo(
-        400,
-        "Argument '{}' in '{}' not allowed (accepted: {})."
-    )
-    MISSING_REQUIRED = _ProblemInfo(
-        400,
-        "Object '{}' missing required property '{}'."
-    )
-    BAD_TYPE = _ProblemInfo(
-        422,
-        "Argument '{}' in '{}' has bad type. Expected '{}' but found '{}'."
-    )
 
 
 class Object(_DPType):
@@ -124,7 +101,8 @@ class Object(_DPType):
         return Stage(
             primer=lambda json, **kwargs: k.origin in json,
             status=lambda primer, **kwargs:
-                Responses.GOOD.status if primer else Responses.MISSING_OPTIONAL.status,
+                Responses.GOOD.status if primer
+                else Responses.MISSING_OPTIONAL.status,
             message=lambda primer, **kwargs:
                 "" if primer else Responses.MISSING_OPTIONAL.msg
         )
@@ -132,7 +110,7 @@ class Object(_DPType):
     @staticmethod
     def _arg_has_type(k, v, loc):
         return Stage(
-            requires={k.origin: Responses.GOOD.status},
+            requires={k.name: Responses.GOOD.status},
             primer=lambda json, **kwargs: isinstance(json[k.origin], v.TYPE),
             status=lambda primer, **kwargs:
                 Responses.GOOD.status if primer else Responses.BAD_TYPE.status,
@@ -147,49 +125,82 @@ class Object(_DPType):
         )
 
     @staticmethod
-    def _nested_object(k, v, loc):
+    def _make_instance(k, v, loc):
         return Stage(
-            requires={k.origin: Responses.GOOD.status},
+            requires={k.name: Responses.GOOD.status},
             primer=lambda json, **kwargs:
-                v.assemble(_loc=loc).run(
-                    json=json[k.origin]
-                ),
-            action=lambda primer, out, **kwargs:
-                out.update(
-                    {k.name: primer.data}
-                    if primer.last_status == Responses.GOOD.status
-                    else {}
-                ),
-            status=lambda primer, **kwargs: primer.last_status,
-            message=lambda primer, **kwargs: primer.last_message
+                v.make(json[k.origin], loc),
+            export=lambda primer, **kwargs:
+                {f"EXPORT_{k.name}": primer[0]}
+                if primer[2] == Responses.GOOD.status
+                else {},
+            status=lambda primer, **kwargs: primer[2],
+            message=lambda primer, **kwargs: primer[1]
+        )
+
+    @staticmethod
+    def _set_default(k):
+        if k.default is not None:
+            # default is set
+            return Stage(
+                requires={k.name: Responses.MISSING_OPTIONAL.status},
+                primer=k.default
+                    if callable(k.default)
+                    else lambda **kwargs: k.default,
+                export=lambda primer, **kwargs:
+                    {f"EXPORT_{k.name}": primer},
+                status=lambda **kwargs: Responses.GOOD.status,
+                message=lambda **kwargs: Responses.GOOD.msg
+            )
+        # default to None or omit completely
+        return Stage(
+            requires={k.name: Responses.MISSING_OPTIONAL.status},
+            export=lambda primer, **kwargs:
+                {f"EXPORT_{k.name}": None}
+                if k.fill_with_none
+                else {},
+            status=lambda **kwargs: Responses.GOOD.status,
+            message=lambda **kwargs: Responses.GOOD.msg
         )
 
     @staticmethod
     def _output(k):
         return Stage(
-            requires={k.origin: Responses.GOOD.status},
-            action=lambda out, json, **kwargs:
-                out.update({k.name: json[k.origin]})
+            primer=lambda **kwargs:
+                f"EXPORT_{k.name}" in kwargs,
+            action=lambda out, primer, **kwargs:
+                out.update(
+                    {k.name: kwargs.get(f"EXPORT_{k.name}")}
+                    if primer
+                    else {}
+                ),
+            status=lambda primer, **kwargs: Responses.GOOD.status,
+            message=lambda primer, **kwargs: Responses.GOOD.msg
         )
 
-    @staticmethod
-    def _set_default(k):
-        if k.fill_with_none:
-            return Stage(
-                requires={k.origin: Responses.MISSING_OPTIONAL.status},
-                primer=k.default
-                    if callable(k.default)
-                    else lambda **kwargs: k.default,
-                action=lambda primer, out, json, **kwargs:
-                    out.update({k.name: primer})
-            )
-        return Stage(
-            requires={k.origin: Responses.MISSING_OPTIONAL.status},
-            primer=k.default
-                if callable(k.default)
-                else lambda **kwargs: k.default,
-            action=lambda primer, out, json, **kwargs:
-                None if primer is None else out.update({k.name: primer})
+    def make(self, json, loc: str) -> tuple[Any, str, int]:
+        """
+        Validate and instantiate type based on `json`.
+
+        Returns with a tuple of
+        * object if valid or None,
+        * problem description if invalid,
+        * status code (`Responses.GOOD` if valid)
+
+        Keyword arguments:
+        json -- data to generate object from
+        loc -- current location in validation process for generating
+               informative messages
+        """
+        output = self.assemble(loc).run(json=json)
+        return (
+            (
+                output.data
+                if output.last_status == Responses.GOOD.status
+                else None
+            ),
+            output.last_message,
+            output.last_status
         )
 
     def assemble(self, _loc: Optional[str] = None) -> Pipeline:
@@ -197,33 +208,51 @@ class Object(_DPType):
         Returns `Pipeline` that processes a `json`-input.
         """
         def finalizer(data, **kwargs):
-            data = self._model(**data)
+            data = self._model(**data)  # TODO: custom model validation: define BaseModel(_DPType)-type with TYPE=dict
         p = Pipeline(
             exit_on_status=lambda status: status >= 400,
             finalize_output=finalizer
         )
+        __loc = _loc or "."
         if self._accept_only is not None:
             p.append(
-                self._reject_unknown_args(self._accept_only, _loc or ".")
+                __loc,
+                **{__loc: self._reject_unknown_args(self._accept_only, __loc)}
             )
         for k, v in self._properties.items():
+
+            # k.name: validate existence
             if k.required and k.default is None:
                 p.append(
-                    k.origin, **{
-                        k.origin: self._arg_exists_hard(k, _loc or ".")
-                    }
+                    k.name,
+                    **{k.name: self._arg_exists_hard(k, __loc)}
                 )
             else:
-                p.append(k.origin, **{k.origin: self._arg_exists_soft(k)})
-            p.append(self._arg_has_type(k, v, _loc or "."))
-            if isinstance(v, Object):
-                p.append(
-                    self._nested_object(k, v, (_loc or "") + "." + k.origin)
-                )
-            else:
-                # TODO: add v.validate()-Stage
-                pass
-            # TODO: add model-specific validation
-            p.append(self._output(k))
-            p.append(self._set_default(k))
+                p.append(k.name, **{k.name: self._arg_exists_soft(k)})
+            # {k.name}[type]: validate type
+            p.append(
+                f"{k.name}[type]",
+                **{f"{k.name}[type]": self._arg_has_type(k, v, __loc)}
+            )
+            # {k.name}[dptype]: validate, make, and export instance as
+            #                   f"EXPORT_{k.name}" (if valid)
+            p.append(
+                f"{k.name}[dptype]",
+                **{f"{k.name}[dptype]": self._make_instance(
+                    k, v, (_loc or "") + "." + k.origin
+                )}
+            )
+            # {k.name}[default]: apply default if required (or set None
+            #   if property has fill_with_none set) and export as
+            #   f"EXPORT_{k.name}"
+            p.append(
+                f"{k.name}[default]",
+                **{f"{k.name}[default]": self._set_default(k)}
+            )
+            # {k.name}[output]: output to data
+            p.append(
+                f"{k.name}[output]",
+                **{f"{k.name}[output]": self._output(k)}
+            )
+
         return p
