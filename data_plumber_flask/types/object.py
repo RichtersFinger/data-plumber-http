@@ -224,8 +224,13 @@ class Object(_DPType):
                 __loc,
                 **{__loc: self._reject_unknown_args(self._accept_only, __loc)}
             )
+        elif self._additional_properties is not None:
+            # additional properties (iterate all that are not in self._properties.keys())
+            pass
+        else:
+            # free-form (iterate all that are not in self._properties.keys())
+            pass
         for k, v in self._properties.items():
-
             # k.name: validate existence
             if k.required and k.default is None:
                 p.append(
