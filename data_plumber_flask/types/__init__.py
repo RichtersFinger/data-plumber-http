@@ -1,8 +1,14 @@
+from typing import Any
 from dataclasses import dataclass
+import abc
 
 
-class _DPType:
-    pass
+class _DPType(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def make(self, json, loc: str) -> tuple[Any, str, int]:
+        raise NotImplementedError(
+            "Method 'make' needs to be defined when using abstract base '_DPType'."
+        )
 
 
 @dataclass
@@ -35,6 +41,7 @@ from .integer import Integer
 from .number import Number
 from .object import Object
 from .string import String
+
 
 __all__ = [
     "Responses",

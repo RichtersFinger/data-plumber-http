@@ -169,11 +169,16 @@ class Object(_DPType):
             primer=lambda **kwargs:
                 f"EXPORT_{k.name}" in kwargs,
             action=lambda out, primer, **kwargs:
-                out.update(
-                    {k.name: kwargs.get(f"EXPORT_{k.name}")}
-                    if primer
-                    else {}
-                ),
+                [
+                    out.update({"kwargs": {}})
+                    if "kwargs" not in out
+                    else None,
+                    out["kwargs"].update(
+                        {k.name: kwargs.get(f"EXPORT_{k.name}")}
+                        if primer
+                        else {}
+                    )
+                ],
             status=lambda primer, **kwargs: Responses.GOOD.status,
             message=lambda primer, **kwargs: Responses.GOOD.msg
         )
@@ -195,7 +200,7 @@ class Object(_DPType):
         output = self.assemble(loc).run(json=json)
         return (
             (
-                output.data
+                output.data["value"]
                 if output.last_status == Responses.GOOD.status
                 else None
             ),
@@ -208,7 +213,7 @@ class Object(_DPType):
         Returns `Pipeline` that processes a `json`-input.
         """
         def finalizer(data, **kwargs):
-            data = self._model(**data)  # TODO: custom model validation: define BaseModel(_DPType)-type with TYPE=dict
+            data["value"] = self._model(**data.get("kwargs", {}))
         p = Pipeline(
             exit_on_status=lambda status: status >= 400,
             finalize_output=finalizer
