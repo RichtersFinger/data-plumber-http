@@ -11,7 +11,7 @@ from data_plumber import Pipeline
 from data_plumber_flask.keys import AllOf, OneOf, Property
 from data_plumber_flask.types \
     import Array, Boolean, Float, Integer, Number, Object, String
-from data_plumber_flask.types.object import Responses
+from data_plumber_flask.types import Responses
 
 
 def test_property_fill_with_none():

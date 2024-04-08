@@ -2,7 +2,7 @@ from typing import TypeAlias, Mapping, Optional, Any
 
 from data_plumber import Pipeline, Stage
 
-from data_plumber_flask.keys import _DPKey
+from data_plumber_flask.keys import _DPKey, Property
 from . import _DPType, Responses
 
 
@@ -40,9 +40,10 @@ class Object(_DPType):
         accept_only: Optional[list[str]] = None
     ) -> None:
         self._model = model or dict
-        self._properties = properties
+        self._properties = properties or {}
 
-        if len(set(k.name for k in properties.keys())) < len(properties):
+        if properties is not None \
+                and len(set(k.name for k in properties.keys())) < len(properties):
             names = set()
             raise ValueError(
                 "Conflicting property name(s) in Object: "
@@ -179,8 +180,46 @@ class Object(_DPType):
                         else {}
                     )
                 ],
-            status=lambda primer, **kwargs: Responses.GOOD.status,
-            message=lambda primer, **kwargs: Responses.GOOD.msg
+            status=lambda **kwargs: Responses.GOOD.status,
+            message=lambda **kwargs: Responses.GOOD.msg
+        )
+
+    @staticmethod
+    def _process_additional_properties(keys, dptype, loc):
+        """
+        Defines a `Stage` in which an `Object`-based `Pipeline` is built
+        and executed. The `Object` contains `Properties` which appear in
+        the `json` but not as `Property` in the original `Object`. This
+        way, the given fields in the `json` can be validated regarding
+        their type.
+
+        Keyword arguments:
+        keys -- list of field names defined in the original `Object`
+        dptype -- `_DPType` of the additional properties
+        loc -- position in original `json`
+        """
+        return Stage(
+            primer=lambda json, **kwargs: Object(
+                properties={
+                    Property(k): dptype for k in additional
+                }
+            ).assemble(loc).run(json=json)
+            if len(additional := [k for k in json.keys() if k not in keys]) > 0
+            else None,  # return None if Object is empty > simply return with
+                        # Responses.GOOD
+            action=lambda out, primer, **kwargs:
+                [
+                    out.update({"kwargs": {}})
+                    if "kwargs" not in out
+                    else None,
+                    out["kwargs"].update(primer.data.get("kwargs", {}))
+                ]
+                if primer and primer.last_status == Responses.GOOD.status
+                else None,
+            status=lambda primer, **kwargs:
+                primer.last_status if primer else Responses.GOOD.status,
+            message=lambda primer, **kwargs:
+                primer.last_message if primer else Responses.GOOD.msg,
         )
 
     def make(self, json, loc: str) -> tuple[Any, str, int]:
@@ -225,10 +264,20 @@ class Object(_DPType):
                 **{__loc: self._reject_unknown_args(self._accept_only, __loc)}
             )
         elif self._additional_properties is not None:
-            # additional properties (iterate all that are not in self._properties.keys())
-            pass
+            # additional properties
+            p.append(
+                f"{__loc}[additionalProperties]",
+                **{
+                    f"{__loc}[additionalProperties]":
+                        self._process_additional_properties(
+                            [k.origin for k in self._properties.keys()],
+                            self._additional_properties,
+                            _loc
+                        )
+                }
+            )
         else:
-            # free-form (iterate all that are not in self._properties.keys())
+            # free-form
             pass
         for k, v in self._properties.items():
             # k.name: validate existence
