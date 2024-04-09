@@ -29,6 +29,9 @@ class Object(_DPType):
                    `accept_only` (mutually exclusive with
                    `additional_properties`)
                    (default `None`)
+    free_form -- if `True`, accept and use any content that has not been
+                 defined explicitly via `properties`
+                 (default `False`)
     """
     TYPE = dict
 
@@ -37,7 +40,8 @@ class Object(_DPType):
         model: Optional[type] = None,
         properties: Optional[Properties] = None,
         additional_properties: Optional[_DPType] = None,
-        accept_only: Optional[list[str]] = None
+        accept_only: Optional[list[str]] = None,
+        free_form: bool = False
     ) -> None:
         self._model = model or dict
         self._properties = properties or {}
@@ -60,8 +64,19 @@ class Object(_DPType):
                 f"Value of 'additional_properties' ({additional_properties}) "
                 + f"conflicts with value of 'accept_only' ({accept_only})."
             )
+        if additional_properties and free_form:
+            raise ValueError(
+                f"Value of 'additional_properties' ({additional_properties}) "
+                + f"conflicts with value of 'free_form' ({free_form})."
+            )
+        if accept_only and free_form:
+            raise ValueError(
+                f"Value of 'accept_only' ({accept_only}) "
+                + f"conflicts with value of 'free_form' ({free_form})."
+            )
         self._additional_properties = additional_properties
         self._accept_only = accept_only
+        self._free_form = free_form
 
     @staticmethod
     def _reject_unknown_args(accepted, loc):
@@ -200,13 +215,15 @@ class Object(_DPType):
         """
         return Stage(
             primer=lambda json, **kwargs: Object(
-                properties={
-                    Property(k): dptype for k in additional
-                }
-            ).assemble(loc).run(json=json)
-            if len(additional := [k for k in json.keys() if k not in keys]) > 0
-            else None,  # return None if Object is empty > simply return with
-                        # Responses.GOOD
+                    properties={
+                        Property(k): dptype for k in additional
+                    }
+                ).assemble(loc).run(json=json)
+                if len(
+                    additional := [k for k in json.keys() if k not in keys]
+                ) > 0
+                else None,  # return None if Object is empty > simply return with
+                            # Responses.GOOD
             action=lambda out, primer, **kwargs:
                 [
                     out.update({"kwargs": {}})
@@ -220,6 +237,30 @@ class Object(_DPType):
                 primer.last_status if primer else Responses.GOOD.status,
             message=lambda primer, **kwargs:
                 primer.last_message if primer else Responses.GOOD.msg,
+        )
+
+    @staticmethod
+    def _process_free_form(keys):
+        """
+        Defines a `Stage` that collects the json-content that is not
+        defined as `Properties` in the original `Object` and adds those
+        to the output `kwargs`.
+
+        Keyword arguments:
+        keys -- list of field names defined in the original `Object`
+        """
+        return Stage(
+            primer=lambda json, **kwargs:
+                {k: v for k, v in json.items() if k not in keys},
+            action=lambda out, primer, **kwargs:
+                [
+                    out.update({"kwargs": {}})
+                    if "kwargs" not in out
+                    else None,
+                    out["kwargs"].update(primer)
+                ],
+            status=lambda **kwargs: Responses.GOOD.status,
+            message=lambda **kwargs: Responses.GOOD.msg,
         )
 
     def make(self, json, loc: str) -> tuple[Any, str, int]:
@@ -243,8 +284,8 @@ class Object(_DPType):
                 if output.last_status == Responses.GOOD.status
                 else None
             ),
-            output.last_message,
-            output.last_status
+            output.last_message or Responses.GOOD.msg,
+            output.last_status or Responses.GOOD.status
         )
 
     def assemble(self, _loc: Optional[str] = None) -> Pipeline:
@@ -276,9 +317,17 @@ class Object(_DPType):
                         )
                 }
             )
-        else:
+        elif self._free_form:
             # free-form
-            pass
+            p.append(
+                f"{__loc}[freeForm]",
+                **{
+                    f"{__loc}[freeForm]":
+                        self._process_free_form(
+                            [k.origin for k in self._properties.keys()]
+                        )
+                }
+            )
         for k, v in self._properties.items():
             # k.name: validate existence
             if k.required and k.default is None:
