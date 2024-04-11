@@ -3,7 +3,7 @@ from typing import TypeAlias, Mapping, Optional, Any
 from data_plumber import Pipeline, Stage
 
 from data_plumber_flask.keys import _DPKey, Property
-from . import _DPType, Responses
+from . import _DPType, Responses, Output
 
 
 Properties: TypeAlias = Mapping[_DPKey, "_DPType | Properties"]
@@ -189,7 +189,7 @@ class Object(_DPType):
                     out.update({"kwargs": {}})
                     if "kwargs" not in out
                     else None,
-                    out["kwargs"].update(
+                    out.kwargs.update(
                         {k.name: kwargs.get(f"EXPORT_{k.name}")}
                         if primer
                         else {}
@@ -229,7 +229,7 @@ class Object(_DPType):
                     out.update({"kwargs": {}})
                     if "kwargs" not in out
                     else None,
-                    out["kwargs"].update(primer.data.get("kwargs", {}))
+                    out.kwargs.update(primer.data.get("kwargs", {}))
                 ]
                 if primer and primer.last_status == Responses.GOOD.status
                 else None,
@@ -257,7 +257,7 @@ class Object(_DPType):
                     out.update({"kwargs": {}})
                     if "kwargs" not in out
                     else None,
-                    out["kwargs"].update(primer)
+                    out.kwargs.update(primer)
                 ],
             status=lambda **kwargs: Responses.GOOD.status,
             message=lambda **kwargs: Responses.GOOD.msg,
@@ -280,7 +280,7 @@ class Object(_DPType):
         output = self.assemble(loc).run(json=json)
         return (
             (
-                output.data["value"]
+                output.data.value
                 if output.last_status == Responses.GOOD.status
                 else None
             ),
@@ -293,9 +293,10 @@ class Object(_DPType):
         Returns `Pipeline` that processes a `json`-input.
         """
         def finalizer(data, **kwargs):
-            data["value"] = self._model(**data.get("kwargs", {}))
+            data.value = self._model(**data.kwargs)
         p = Pipeline(
             exit_on_status=lambda status: status >= 400,
+            initialize_output=Output,
             finalize_output=finalizer
         )
         __loc = _loc or "."

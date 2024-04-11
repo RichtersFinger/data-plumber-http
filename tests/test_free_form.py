@@ -56,7 +56,7 @@ def test_object_free_form_full(json):
     ).assemble().run(json={"object": json})
 
     assert output.last_status == Responses.GOOD.status
-    assert output.data["value"]["object"] == json
+    assert output.data.value["object"] == json
 
 
 @pytest.mark.parametrize(
@@ -89,7 +89,7 @@ def test_object_free_form_partial(json, status):
 
     assert output.last_status == status
     if status == Responses.GOOD.status:
-        assert output.data["value"] == json
+        assert output.data.value == json
     else:
         print(output.last_message)
 
@@ -109,4 +109,4 @@ def test_object_free_form_with_model():
     ).assemble().run(json={"object": json})
 
     assert output.last_status == Responses.GOOD.status
-    assert output.data["value"]["object"].kwargs == json
+    assert output.data.value["object"].kwargs == json

@@ -33,7 +33,7 @@ def test_object_additional_properties():
         additional_properties=String(),
     ).assemble().run(json=json)
     assert output.last_status == Responses.GOOD.status
-    assert output.data["value"] == json
+    assert output.data.value == json
 
 
 def test_object_properties_and_additional_properties():
@@ -49,7 +49,7 @@ def test_object_properties_and_additional_properties():
         additional_properties=String(),
     ).assemble().run(json=json)
     assert output.last_status == Responses.GOOD.status
-    assert output.data["value"] == json
+    assert output.data.value == json
 
 
 def test_object_additional_properties_none_given():
@@ -60,7 +60,7 @@ def test_object_additional_properties_none_given():
         additional_properties=String(),
     ).assemble().run(json=json)
     assert output.last_status == Responses.GOOD.status
-    assert output.data["value"] == json
+    assert output.data.value == json
 
 
 def test_object_property_and_additional_properties_none_given():
@@ -74,7 +74,7 @@ def test_object_property_and_additional_properties_none_given():
         additional_properties=String(),
     ).assemble().run(json=json)
     assert output.last_status == Responses.GOOD.status
-    assert output.data["value"] == json
+    assert output.data.value == json
 
 
 def test_object_additional_properties_bad_types():
