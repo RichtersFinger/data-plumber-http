@@ -135,7 +135,7 @@ class Object(_DPType):
                 else Responses.BAD_TYPE.msg.format(
                     k.origin,
                     loc,
-                    v.TYPE.__name__,
+                    v.__name__,
                     type(json[k.origin]).__name__
                 )
         )
