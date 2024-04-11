@@ -7,11 +7,6 @@ requirements = \
         .read_text(encoding="utf8") \
         .strip() \
         .split("\n")
-test_requirements = \
-    (Path(__file__).parent / "tests" / "test_requirements.txt") \
-        .read_text(encoding="utf8") \
-        .strip() \
-        .split("\n")
 
 setup(
     version="0.1.0",
@@ -28,7 +23,7 @@ setup(
     python_requires=">=3.10",
     install_requires=requirements,
     extras_require={
-        'tests': test_requirements
+        "tests": ["pytest>=7.4,<8", "pytest-cov>=4.1,<5"],
     },
     packages=[
         "data_plumber_flask",
