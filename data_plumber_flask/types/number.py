@@ -1,4 +1,8 @@
-from . import _DPType
+from . import _DPType, Integer, Float
+
 
 class Number(_DPType):
-    pass
+    TYPE = None
+    make = None
+    def __new__(self):
+        return Integer() | Float()
