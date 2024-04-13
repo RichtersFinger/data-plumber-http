@@ -76,6 +76,10 @@ class Responses:
         422,
         "Argument '{}' in '{}' has bad type. Expected '{}' but found '{}'."
     )
+    BAD_VALUE = _ProblemInfo(
+        422,
+        "Value '{}' in '{}' not allowed (expected {})."
+    )
 
 
 class Output(dict):

@@ -136,3 +136,50 @@ def test_types_complex_union(json, status):
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        ("string1", Responses.GOOD.status),
+        ("string", Responses.BAD_VALUE.status),
+        ("string11", Responses.BAD_VALUE.status),
+    ]
+)
+def test_string_pattern(json, status):
+    """Test property `pattern` of `String`."""
+    output = Object(
+        properties={
+            Property("field"): String(pattern=r"string[0-9]")
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        ("string1", Responses.GOOD.status),
+        ("string2", Responses.GOOD.status),
+        ("string", Responses.BAD_VALUE.status),
+        ("string11", Responses.BAD_VALUE.status),
+    ]
+)
+def test_string_enum(json, status):
+    """Test property `enum` of `String`."""
+    output = Object(
+        properties={
+            Property("field"): String(enum=["string1", "string2"])
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
