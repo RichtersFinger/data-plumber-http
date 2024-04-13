@@ -183,3 +183,150 @@ def test_string_enum(json, status):
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        (1, Responses.GOOD.status),
+        (2, Responses.GOOD.status),
+        (0, Responses.BAD_VALUE.status),
+    ]
+)
+def test_integer_values(json, status):
+    """Test property `values` of `Integer`."""
+    output = Object(
+        properties={
+            Property("field"): Integer(values=[1, 2])
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        (1, Responses.GOOD.status),
+        (2, Responses.GOOD.status),
+        (3, Responses.GOOD.status),
+        (0, Responses.BAD_VALUE.status),
+    ]
+)
+def test_integer_range(json, status):
+    """Test property `range_` of `Integer`."""
+    output = Object(
+        properties={
+            Property("field"): Integer(range_=[1, 3])
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        (1.0, Responses.GOOD.status),
+        (3.5, Responses.GOOD.status),
+        (0.9, Responses.BAD_VALUE.status),
+    ]
+)
+def test_float_values(json, status):
+    """Test property `values` of `Float`."""
+    output = Object(
+        properties={
+            Property("field"): Float(values=[1.0, 3.5])
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        (1.0, Responses.GOOD.status),
+        (2.0, Responses.GOOD.status),
+        (3.0, Responses.GOOD.status),
+        (0.0, Responses.BAD_VALUE.status),
+    ]
+)
+def test_float_range(json, status):
+    """Test property `range_` of `Float`."""
+    output = Object(
+        properties={
+            Property("field"): Float(range_=[1, 3])
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        (1, Responses.GOOD.status),
+        (2, Responses.GOOD.status),
+        (3.5, Responses.GOOD.status),
+        (0, Responses.BAD_VALUE.status),
+        (0.9, Responses.BAD_VALUE.status),
+    ]
+)
+def test_number_values(json, status):
+    """Test property `values` of `Number`."""
+    output = Object(
+        properties={
+            Property("field"): Number(values=[1, 2, 3.5])
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        (1, Responses.GOOD.status),
+        (1.0, Responses.GOOD.status),
+        (2, Responses.GOOD.status),
+        (2.0, Responses.GOOD.status),
+        (3, Responses.GOOD.status),
+        (3.0, Responses.GOOD.status),
+        (0, Responses.BAD_VALUE.status),
+        (0.0, Responses.BAD_VALUE.status),
+    ]
+)
+def test_number_range(json, status):
+    """Test property `range_` of `Number`."""
+    output = Object(
+        properties={
+            Property("field"): Number(range_=[1, 3])
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
