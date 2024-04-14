@@ -9,7 +9,7 @@ class Property(_DPKey):
     field in an `Object.properties`-mapping.
 
     Keyword arguments:
-    origin -- key name in the input json
+    origin -- key name in the input JSON
     name -- name of the key generated from this `Property`;
             (default `None`; corresponds to same as `origin`)
     default -- either static value or callable taking input kwargs; used

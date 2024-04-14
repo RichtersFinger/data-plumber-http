@@ -5,7 +5,7 @@ from . import _DPType, Integer, Float
 
 class Number(_DPType):
     """
-    A `Number` corresponds to the json-type 'number'.
+    A `Number` corresponds to the JSON-type 'number'.
 
     Keyword arguments:
     values -- list of values allowed in this field

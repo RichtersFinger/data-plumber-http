@@ -112,8 +112,8 @@ This section gives a brief overview of the features included in this package.
 ### Property
 A `Property` is used in conjuction with the `properties`-argument in the `Object` constructor.
 It specifies the field-related properties:
-* **origin** key name in the input json
-* **name** given name of the key generated from this `Property` (can be used to map json-names to python-names)
+* **origin** key name in the input JSON
+* **name** given name of the key generated from this `Property` (can be used to map JSON-names to python-names)
 * **default** either static value or callable taking input kwargs; used as default if property is missing in request
 * **required** whether this property is required
 * **fill_with_none** whether fields of missing arguments without a `default`-value/callable are filled with `None` instead
@@ -121,7 +121,7 @@ It specifies the field-related properties:
 
 ### Types
 #### Object
-An `Object` corresponds to the json-type 'object' and is the base for any input handler-model.
+An `Object` corresponds to the JSON-type 'object' and is the base for any input handler-model.
 Calling `assemble` on an `Object`-instance returns a `data-plumber`-`Pipeline`.
 A `Pipeline.run` expects the keyword argument `json`, a dictionary containing the input data.
 
@@ -133,21 +133,21 @@ Its properties are
 * **free_form** -- whether to accept and use any content that has not been defined explicitly via `properties`
 
 #### Array
-An `Array` corresponds to the json-type 'array'.
+An `Array` corresponds to the JSON-type 'array'.
 Its properties are
 * **items** type specification for items of this `Array`
 
 #### String
-A `String` corresponds to the json-type 'string'.
+A `String` corresponds to the JSON-type 'string'.
 Its properties are
 * **pattern** regex-pattern that the value of this field has to match
 * **enum** list of allowed values for this field
 
 #### Boolean
-A `Boolean` corresponds to the json-type 'boolean'.
+A `Boolean` corresponds to the JSON-type 'boolean'.
 
 #### Integer/Float/Number
-The types `Integer`, `Float`, and `Number` (the latter corresponding to the json-type 'number') represent numbers (integers, floating point numbers, and either of those, respectively).
+The types `Integer`, `Float`, and `Number` (the latter corresponding to the JSON-type 'number') represent numbers (integers, floating point numbers, and either of those, respectively).
 Their properties are
 * **values** list of values allowed in this field
 * **range_** tuple of lower and upper bound for values in this field
@@ -191,7 +191,7 @@ Object(
     properties={Property("string"): PrefixedString(prefix="my-prefix:")}
 )
 ```
-Running the assembled `Pipeline` with a json of `{"string": "my-prefix: hello"}` is returns a good status but `{"string": "missing-prefix: hello"}` is rejected.
+Running the assembled `Pipeline` with a JSON of `{"string": "my-prefix: hello"}` is returns a good status but `{"string": "missing-prefix: hello"}` is rejected.
 
 
 ### Decorators

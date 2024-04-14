@@ -11,7 +11,7 @@ Properties: TypeAlias = Mapping[_DPKey, "_DPType | Properties"]
 
 class Object(_DPType):
     """
-    An `Object` corresponds to the json-type 'object'.
+    An `Object` corresponds to the JSON-type 'object'.
 
     Keyword arguments:
     model -- data model for this `Object` (gets passed the entire output

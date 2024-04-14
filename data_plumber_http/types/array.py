@@ -5,7 +5,7 @@ from . import _DPType, Responses
 
 class Array(_DPType):
     """
-    An `Array` corresponds to the json-type 'array'.
+    An `Array` corresponds to the JSON-type 'array'.
 
     Keyword arguments:
     items -- type specification for items of this `Array`

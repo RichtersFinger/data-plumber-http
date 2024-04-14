@@ -5,7 +5,7 @@ from . import _DPType, Responses
 
 class Boolean(_DPType):
     """
-    A `Boolean` corresponds to the json-type 'boolean'.
+    A `Boolean` corresponds to the JSON-type 'boolean'.
     """
     TYPE = bool
 
