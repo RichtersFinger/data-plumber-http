@@ -14,7 +14,7 @@ The extension also defines a decorator for a seamless integration with `flask`-w
 ## Install
 Install using `pip` with
 ```
-pip install data-plumber[http]
+pip install data-plumber-http
 ```
 Consider installing in a virtual environment.
 
@@ -95,7 +95,120 @@ Based on the example-request body given in the Pet Store API (`{"id": 10, "name"
 ```
 
 ## Documentation
+This section gives a brief overview of the features included in this package.
+
+### Contents
+1. [Property](#property)
+1. [Types](#types)
+   1. [Object](#object)
+   1. [Array](#array)
+   1. [String](#string)
+   1. [Boolean](#boolean)
+   1. [Integer/Float/Number](#integerfloatnumber)
+   1. [Union Types](#union-types)
+   1. [Custom Types](#custom-types)
+1. [Decorators](#decorators)
 
 ### Property
+A `Property` is used in conjuction with the `properties`-argument in the `Object` constructor.
+It specifies the field-related properties:
+* **origin** key name in the input json
+* **name** given name of the key generated from this `Property` (can be used to map json-names to python-names)
+* **default** either static value or callable taking input kwargs; used as default if property is missing in request
+* **required** whether this property is required
+* **fill_with_none** whether fields of missing arguments without a `default`-value/callable are filled with `None` instead
+* **validation_only** skip exporting this property to the resulting data and only perform validation
+
 ### Types
+#### Object
+An `Object` corresponds to the json-type 'object' and is the base for any input handler-model.
+Calling `assemble` on an `Object`-instance returns a `data-plumber`-`Pipeline`.
+A `Pipeline.run` expects the keyword argument `json`, a dictionary containing the input data.
+
+Its properties are
+* **model** data model (python class) for this `Object` (gets passed the entire output of a `Pipeline`-run)
+* **properties** mapping for explicitly expected contents of this `Object`
+* **additional_properties** -- type for implicitly expected contents of this `Object` (mutually exclusive with `accept_only`); if this type is set, all contents of the input which are not listed in `properties` have to satisfy the requirements imposed by that type
+* **accept_only** -- list of accepted field names; if set, on execution a `json` is rejected with 400 status if it contains a key that is not in `accept_only` (mutually exclusive with `additional_properties`)
+* **free_form** -- whether to accept and use any content that has not been defined explicitly via `properties`
+
+#### Array
+An `Array` corresponds to the json-type 'array'.
+Its properties are
+* **items** type specification for items of this `Array`
+
+#### String
+A `String` corresponds to the json-type 'string'.
+Its properties are
+* **pattern** regex-pattern that the value of this field has to match
+* **enum** list of allowed values for this field
+
+#### Boolean
+A `Boolean` corresponds to the json-type 'boolean'.
+
+#### Integer/Float/Number
+The types `Integer`, `Float`, and `Number` (the latter corresponding to the json-type 'number') represent numbers (integers, floating point numbers, and either of those, respectively).
+Their properties are
+* **values** list of values allowed in this field
+* **range_** tuple of lower and upper bound for values in this field
+
+#### Union Types
+Types can be combined freely by using the `|`-operator.
+A type specification of `Boolean() | String()`, for example, accepts either a boolean- or a string-value.
+
+#### Custom Types
+When using this extension, custom types can be defined easily by inheriting from an existing type or, at a lower level, from `data_plumber_http._DPType` and
+* defining the `TYPE`-property (python class) as well as
+* implementing the `make`-method.
+As a simple example for this, consider the following type-definition for a string-type that is required to be prefixed with some string:
+```
+from data_plumber_http.types import _DPType, Responses
+
+class PrefixedString(_DPType):
+    TYPE = str
+    def __init__(self, prefix: str):
+        self._prefix = prefix
+    def make(self, json, loc: str) -> tuple[Any, str, int]:
+        if not json.startswith(self._prefix):
+            return (
+                None,
+                Responses.BAD_VALUE.msg.format(
+                    json,
+                    loc,
+                    "a prefix of " + self._prefix
+                ),
+                Responses.BAD_VALUE.status
+            )
+        return (
+            self.TYPE(json),
+            Responses.GOOD.msg,
+            Responses.GOOD.status
+        )
+```
+This type can then, for example, be used as
+```
+Object(
+    properties={Property("string"): PrefixedString(prefix="my-prefix:")}
+)
+```
+Running the assembled `Pipeline` with a json of `{"string": "my-prefix: hello"}` is returns a good status but `{"string": "missing-prefix: hello"}` is rejected.
+
+
 ### Decorators
+This package provides a factory for decorators which allow to seamlessly integrate the validation and unmarshalling of input data with flask view-functions.
+See the example given in the section [Usage Example](#usage-example).
+The `decorators`-subpackage defines (aside from the decorator-factory `flask_handler`) shortcuts for collecting request data as `json`-input:
+* `flask_args`: `request.args`
+* `flask_form`: `request.form`
+* `flask_files`: `request.files`
+* `flask_values`: `request.values`
+* `flask_json`: `request.json`
+
+### Status Codes
+The status-codes used by `data-plumber-http` are defined in the class `data_plumber_http.Responses`.
+By monkey-patching this class, the status codes can be easily altered to one's individual requirements.
+```
+from data_plumber_http import Responses
+
+Responses.BAD_VALUE.status = 405
+```

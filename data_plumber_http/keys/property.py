@@ -21,7 +21,7 @@ class Property(_DPKey):
                       without default with `None`
                       (default `False`)
     validation_only -- skip exporting this property to the resulting
-                       data but only perform validation
+                       data and only perform validation
     """
     def __init__(
         self,

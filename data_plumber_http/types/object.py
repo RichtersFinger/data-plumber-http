@@ -14,8 +14,8 @@ class Object(_DPType):
     An `Object` corresponds to the json-type 'object'.
 
     Keyword arguments:
-    model -- data model for this `Object` (gets passed all properties
-             and additional properties as kwargs)
+    model -- data model for this `Object` (gets passed the entire output
+             of a validation-run as kwargs)
              (default `None`; corresponds to dictionary)
     properties -- mapping for explicitly expected contents of this
                   `Object`
