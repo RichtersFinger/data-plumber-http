@@ -2,7 +2,7 @@ from typing import TypeAlias, Mapping, Optional, Any
 
 from data_plumber import Pipeline, Stage
 
-from data_plumber_flask.keys import _DPKey, Property
+from data_plumber_http.keys import _DPKey, Property
 from . import _DPType, Responses, Output
 
 

@@ -10,15 +10,15 @@ requirements = \
 
 setup(
     version="0.1.0",
-    name="data-plumber-flask",
-    description="flask extension for the data-plumber python framework",
+    name="data-plumber-http",
+    description="http extension for the data-plumber python framework",
     author="Steffen Richters-Finger",
     author_email="srichters@uni-muenster.de",
     license="MIT",
     license_files=("LICENSE",),
-    url="https://pypi.org/project/data-plumber-flask/",
+    url="https://pypi.org/project/data-plumber-http/",
     project_urls={
-        "Source": "https://github.com/RichtersFinger/data-plumber-flask"
+        "Source": "https://github.com/RichtersFinger/data-plumber-http"
     },
     python_requires=">=3.10",
     install_requires=requirements,
@@ -26,9 +26,9 @@ setup(
         "tests": ["pytest>=7.4,<8", "pytest-cov>=4.1,<5"],
     },
     packages=[
-        "data_plumber_flask",
-        "data_plumber_flask.types",
-        "data_plumber_flask.keys",
+        "data_plumber_http",
+        "data_plumber_http.types",
+        "data_plumber_http.keys",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",

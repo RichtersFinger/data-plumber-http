@@ -2,15 +2,15 @@
 Part of the test suite for data-plumber-flask.
 
 Run with
-pytest -v -s --cov=data_plumber_flask.keys --cov=data_plumber_flask.types
+pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types
 """
 
 import pytest
 
-from data_plumber_flask.keys import Property
-from data_plumber_flask.types \
+from data_plumber_http.keys import Property
+from data_plumber_http.types \
     import Boolean, String, Object, _DPType
-from data_plumber_flask.types import Responses
+from data_plumber_http.types import Responses
 
 
 def test_union_type():

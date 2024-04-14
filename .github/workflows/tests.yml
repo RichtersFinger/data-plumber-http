@@ -26,4 +26,4 @@ jobs:
         pip install ".[tests]"
     - name: Test with pytest
       run: |
-        pytest -v -s --cov=data_plumber_flask.keys --cov=data_plumber_flask.types
+        pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types
