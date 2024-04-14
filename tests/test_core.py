@@ -182,6 +182,17 @@ def test_object_pipeline_run_basic():
     assert output.last_status == Responses.GOOD.status
 
 
+def test_object_pipeline_run_bad_type():
+    """Test handling of bad type in `Object`."""
+
+    pipeline = Object(properties={Property("string"): String()}).assemble()
+
+    output = pipeline.run(json={"string": 0})
+    assert output.data.value == {}
+    assert output.last_status == Responses.BAD_TYPE.status
+    print(output.last_message)
+
+
 def test_object_key_value_conflict_in_properties():
     """Test constructor of `Object` regarding duplicate property names."""
 
