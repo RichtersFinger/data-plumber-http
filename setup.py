@@ -1,6 +1,19 @@
 from pathlib import Path
 from setuptools import setup
 
+
+# prepare contents of long_description
+long_description = \
+    (Path(__file__).parent / "README.md") \
+        .read_text(encoding="utf8")
+# read contents of CHANGELOG
+changelog = \
+    (Path(__file__).parent / "CHANGELOG.md").read_text(encoding="utf8")
+long_description = \
+    long_description.replace(
+        "[Changelog](CHANGELOG.md)", "[Changelog](#changelog)"
+    ) + "\n\n" + changelog
+
 # read contents of requirements.txt
 requirements = \
     (Path(__file__).parent / "requirements.txt") \
@@ -12,6 +25,8 @@ setup(
     version="0.1.0",
     name="data-plumber-http",
     description="http extension for the data-plumber python framework",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author="Steffen Richters-Finger",
     author_email="srichters@uni-muenster.de",
     license="MIT",
@@ -32,7 +47,7 @@ setup(
         "data_plumber_http.decorators",
     ],
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Libraries",
         "License :: OSI Approved :: MIT License",
