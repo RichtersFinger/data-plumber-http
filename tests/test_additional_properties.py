@@ -2,7 +2,7 @@
 Part of the test suite for data-plumber-flask.
 
 Run with
-pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types
+pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types --cov=data_plumber_http.decorators
 """
 
 import pytest
