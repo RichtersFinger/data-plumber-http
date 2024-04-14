@@ -8,8 +8,7 @@ pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types --cov=da
 import pytest
 
 from data_plumber_http.keys import Property
-from data_plumber_http.types \
-    import Array, Boolean, Float, Integer, Number, Object, String
+from data_plumber_http.types import Boolean, Object, String
 from data_plumber_http.types import Responses
 
 
