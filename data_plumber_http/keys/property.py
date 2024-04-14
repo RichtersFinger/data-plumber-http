@@ -27,10 +27,12 @@ class Property(_DPKey):
         name: Optional[str] = None,
         default: Optional[Callable[[...], Any] | Any] = None,
         required: bool = False,
-        fill_with_none: bool = False
+        fill_with_none: bool = False,
+        validation_only: bool = False
     ) -> None:
         self.origin = origin
         self.name = name or origin
         self.default = default
         self.required = required
         self.fill_with_none = fill_with_none
+        self.validation_only = validation_only

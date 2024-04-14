@@ -351,6 +351,8 @@ class Object(_DPType):
                     k, v, (_loc or "") + "." + k.origin
                 )}
             )
+            if k.validation_only:
+                continue
             # {k.name}[default]: apply default if required (or set None
             #   if property has fill_with_none set) and export as
             #   f"EXPORT_{k.name}"

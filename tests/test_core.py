@@ -29,6 +29,22 @@ def test_property_fill_with_none():
     assert output.last_status == Responses.GOOD.status
 
 
+def test_property_validation_only():
+    """Test argument `validation_only` of `Property`."""
+
+    output = Object(
+        properties={Property("string", validation_only=False): String()}
+    ).assemble().run(json={"string": "test-string"})
+    assert output.data.value == {"string": "test-string"}
+    assert output.last_status == Responses.GOOD.status
+
+    output = Object(
+        properties={Property("string", validation_only=True): String()}
+    ).assemble().run(json={"string": "test-string"})
+    assert output.data.value == {}
+    assert output.last_status == Responses.GOOD.status
+
+
 def test_property_required():
     """Test argument `required` of `Property`."""
 
