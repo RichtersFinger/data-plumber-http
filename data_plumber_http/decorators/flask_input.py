@@ -30,8 +30,19 @@ def flask_json():
 
 def flask_handler(handler: Pipeline, json: Callable[[], dict]):
     """
-    Decorator for flask view-functions to validate and process request-
-    data.
+    Returns decorator for flask view-functions to validate and process
+    request-data.
+
+    Use as decorator for a flask view-function like
+     >>> @app.route("/", methods=["GET"])
+     ... @flask_handler(
+     ...     handler=Object(...).assemble(),
+     ...     json=flask_args
+     ... )
+     ... def main(
+     ...     <kwargs from Object>
+     ... ):
+     ...     ...
 
     Keyword arguments:
     handler -- `Pipeline` to be called

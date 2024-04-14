@@ -4,6 +4,15 @@ from . import _DPType, Responses
 
 
 class Integer(_DPType):
+    """
+    An `Integer` represents an integer number.
+
+    Keyword arguments:
+    values -- list of values allowed in this field
+              (default `None`)
+    range_ -- tuple of lower and upper bound for values in this field
+              (default `None`)
+    """
     TYPE = int
 
     def __init__(

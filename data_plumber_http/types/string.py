@@ -5,6 +5,15 @@ from . import _DPType, Responses
 
 
 class String(_DPType):
+    """
+    A `String` corresponds to the json-type 'string'.
+
+    Keyword arguments:
+    pattern -- regex-pattern that the value of this field has to match
+               (default `None`)
+    enum -- list of allowed values for this field
+            (default `None`)
+    """
     TYPE = str
 
     def __init__(

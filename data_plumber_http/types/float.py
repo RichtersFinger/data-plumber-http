@@ -4,6 +4,15 @@ from . import _DPType, Responses
 
 
 class Float(_DPType):
+    """
+    A `Float` represents a floating point number.
+
+    Keyword arguments:
+    values -- list of values allowed in this field
+              (default `None`)
+    range_ -- tuple of lower and upper bound for values in this field
+              (default `None`)
+    """
     TYPE = float
 
     def __init__(

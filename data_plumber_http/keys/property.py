@@ -20,6 +20,8 @@ class Property(_DPKey):
     fill_with_none -- if `True`, fill fields of missing arguments
                       without default with `None`
                       (default `False`)
+    validation_only -- skip exporting this property to the resulting
+                       data but only perform validation
     """
     def __init__(
         self,

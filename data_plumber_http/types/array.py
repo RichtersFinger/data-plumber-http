@@ -4,6 +4,12 @@ from . import _DPType, Responses
 
 
 class Array(_DPType):
+    """
+    An `Array` corresponds to the json-type 'array'.
+
+    Keyword arguments:
+    items -- type specification for items of this `Array`
+    """
     TYPE = list
 
     def __init__(self, items: _DPType):

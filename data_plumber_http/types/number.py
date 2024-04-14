@@ -4,6 +4,15 @@ from . import _DPType, Integer, Float
 
 
 class Number(_DPType):
+    """
+    A `Number` corresponds to the json-type 'number'.
+
+    Keyword arguments:
+    values -- list of values allowed in this field
+              (default `None`)
+    range_ -- tuple of lower and upper bound for values in this field
+              (default `None`)
+    """
     TYPE = None
     make = None
 

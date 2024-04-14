@@ -8,7 +8,7 @@ pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types --cov=da
 from typing import Optional
 
 import pytest
-from flask import Flask, Response, request as flask_request
+from flask import Flask, Response
 
 from data_plumber_http.keys import Property
 from data_plumber_http.types import Responses, Object, String, Integer
