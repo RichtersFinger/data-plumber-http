@@ -9,7 +9,7 @@ import pytest
 
 from data_plumber_http.keys import Property
 from data_plumber_http.types \
-    import Array, Boolean, Float, Integer, Number, Object, String
+    import Array, Boolean, Float, Integer, Number, Object, String, Url
 from data_plumber_http.types import Responses
 
 
@@ -330,3 +330,94 @@ def test_number_range(json, status):
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        ("http://pypi.org/path", Responses.GOOD.status),
+        ("http://pypi.org", Responses.GOOD.status),
+        ("pypi.org", Responses.GOOD.status),  # interpreted as path
+        ("http", Responses.GOOD.status),
+        ("http://", Responses.GOOD.status),
+        ("http:/path", Responses.GOOD.status),
+    ]
+)
+def test_url_basic(json, status):
+    """Test type `Url`."""
+    output = Object(
+        properties={
+            Property("field"): Url()
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        ("http://pypi.org", Responses.GOOD.status),
+        ("custom://pypi.org", Responses.GOOD.status),
+        ("sftp://pypi.org", Responses.BAD_VALUE.status),
+        ("pypi.org", Responses.BAD_VALUE.status),
+    ]
+)
+def test_url_schemes(json, status):
+    """Test type `Url`."""
+    output = Object(
+        properties={
+            Property("field"): Url(schemes=["http", "custom"])
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        ("http://pypi.org/path", Responses.GOOD.status),
+        ("http://pypi.org", Responses.GOOD.status),
+        ("pypi.org", Responses.BAD_VALUE.status),
+        ("://pypi.org", Responses.BAD_VALUE.status),
+        ("http://", Responses.BAD_VALUE.status),
+        ("http:/path", Responses.BAD_VALUE.status),
+        ("", Responses.BAD_VALUE.status),
+    ]
+)
+def test_url_require_netloc(json, status):
+    """Test type `Url`."""
+    output = Object(
+        properties={
+            Property("field"): Url(require_netloc=True)
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
+
+
+def test_url_return_parsed():
+    """Test type `Url`."""
+    output = Object(
+        properties={
+            Property("field"): Url(return_parsed=True)
+        }
+    ).assemble().run(json={"field": "http://pypi.org/path"})
+
+    assert output.last_status == Responses.GOOD.status
+    assert hasattr(output.data.value["field"], "scheme")
+    assert hasattr(output.data.value["field"], "netloc")
+    assert hasattr(output.data.value["field"], "path")

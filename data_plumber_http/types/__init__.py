@@ -116,9 +116,11 @@ from .integer import Integer
 from .number import Number
 from .object import Object
 from .string import String
+from .url import Url
 
 
 __all__ = [
     "Responses",
     "Array", "Boolean", "Float", "Integer", "Number", "Object", "String",
+    "Url",
 ]
