@@ -22,7 +22,7 @@ requirements = \
         .split("\n")
 
 setup(
-    version="0.1.0",
+    version="0.2.0",
     name="data-plumber-http",
     description="http extension for the data-plumber python framework",
     long_description=long_description,
