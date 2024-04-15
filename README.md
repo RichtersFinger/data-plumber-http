@@ -157,7 +157,7 @@ Types can be combined freely by using the `|`-operator.
 A type specification of `Boolean() | String()`, for example, accepts either a boolean- or a string-value.
 
 #### List of Additional Type Definitions
-This package also defines some more higher-level types: `Url`, ...
+This package also defines some more higher-level types: `Url`, `FileSystemObject`, ...
 
 #### Custom Types
 When using this extension, custom types can be defined easily by inheriting from an existing type or, at a lower level, from `data_plumber_http._DPType` and

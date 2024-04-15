@@ -5,11 +5,14 @@ Run with
 pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types --cov=data_plumber_http.decorators
 """
 
+from pathlib import Path
+
 import pytest
 
 from data_plumber_http.keys import Property
 from data_plumber_http.types \
-    import Array, Boolean, Float, Integer, Number, Object, String, Url
+    import Array, Boolean, Float, Integer, Number, Object, String, Url, \
+        FileSystemObject
 from data_plumber_http.types import Responses
 
 
@@ -421,3 +424,56 @@ def test_url_return_parsed():
     assert hasattr(output.data.value["field"], "scheme")
     assert hasattr(output.data.value["field"], "netloc")
     assert hasattr(output.data.value["field"], "path")
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "json", "status"),
+    [
+        ({}, __file__, Responses.GOOD.status),
+        ({"exists": True}, __file__, Responses.GOOD.status),
+        ({"is_file": True}, __file__, Responses.GOOD.status),
+        ({"is_dir": False}, __file__, Responses.GOOD.status),
+        ({"is_file": False}, __file__, Responses.CONFLICT.status),
+        ({"is_dir": True}, __file__, Responses.RESOURCE_NOT_FOUND.status),
+        (
+            {"relative_to": Path("tests")},
+            str(Path(__file__).relative_to(Path(__file__).parents[1])),
+            Responses.GOOD.status
+        ),
+        (
+            {"relative_to": Path(__file__).parent},
+            str(Path(__file__).parents[1] / "another_path"),
+            Responses.BAD_VALUE.status
+        ),
+        ({"relative_to": Path(".")}, __file__, Responses.BAD_VALUE.status),
+        (
+            {"cwd": Path("tests"), "is_file": True},
+            Path(__file__).name,
+            Responses.GOOD.status
+        ),
+    ],
+    ids=[
+        "basic", "exists-good", "is_file-good", "is_dir-good",
+        "is_file-conflict", "is_dir-not found", "relative_to-relative-good",
+        "relative_to-absolute-bad", "relative_to-mixed-bad", "cwd",
+    ]
+)
+def test_file_system_object(kwargs, json, status):
+    """Test type `FileSystemObject`."""
+    output = Object(
+        properties={
+            Property("field"): FileSystemObject(**kwargs)
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        if "relative_to" in kwargs:
+            assert Path(json).relative_to(kwargs["relative_to"]) \
+                == output.data.value["field"]
+        elif "cwd" in kwargs:
+            assert output.data.value["field"] == kwargs["cwd"] / json
+        else:
+            assert str(output.data.value["field"]) == json
+    else:
+        print(output.last_message)
