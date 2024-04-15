@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 from . import _DPType, Responses
 
@@ -9,13 +9,20 @@ class Array(_DPType):
 
     Keyword arguments:
     items -- type specification for items of this `Array`
+             (default `None`; accept any content)
     """
     TYPE = list
 
-    def __init__(self, items: _DPType):
+    def __init__(self, items: Optional[_DPType] = None):
         self._items = items
 
     def make(self, json, loc: str) -> tuple[Any, str, int]:
+        if self._items is None:
+            return (
+                json,
+                Responses.GOOD.msg,
+                Responses.GOOD.status
+            )
         array = []
         for element in json:
             if not isinstance(element, self._items.TYPE):

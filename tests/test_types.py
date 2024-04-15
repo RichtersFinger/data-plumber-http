@@ -5,11 +5,14 @@ Run with
 pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types --cov=data_plumber_http.decorators
 """
 
+from pathlib import Path
+
 import pytest
 
 from data_plumber_http.keys import Property
 from data_plumber_http.types \
-    import Array, Boolean, Float, Integer, Number, Object, String
+    import Array, Boolean, Float, Integer, Number, Object, String, Url, \
+        FileSystemObject
 from data_plumber_http.types import Responses
 
 
@@ -28,6 +31,7 @@ from data_plumber_http.types import Responses
         (Number(), 0.1, Responses.GOOD.status),
         (Number(), True, Responses.GOOD.status),
         (Number(), "string1", Responses.BAD_TYPE.status),
+        (Array(), [0, "string1", {}], Responses.GOOD.status),
         (Array(items=Integer()), [0, 1], Responses.GOOD.status),
         (Array(items=Number()), [0, 1.5], Responses.GOOD.status),
         (Array(items=String()), ["string1", "string2"], Responses.GOOD.status),
@@ -328,5 +332,149 @@ def test_number_range(json, status):
     assert output.last_status == status
     if status == Responses.GOOD.status:
         assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        ("http://pypi.org/path", Responses.GOOD.status),
+        ("http://pypi.org", Responses.GOOD.status),
+        ("pypi.org", Responses.GOOD.status),  # interpreted as path
+        ("http", Responses.GOOD.status),
+        ("http://", Responses.GOOD.status),
+        ("http:/path", Responses.GOOD.status),
+    ]
+)
+def test_url_basic(json, status):
+    """Test type `Url`."""
+    output = Object(
+        properties={
+            Property("field"): Url()
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        ("http://pypi.org", Responses.GOOD.status),
+        ("custom://pypi.org", Responses.GOOD.status),
+        ("sftp://pypi.org", Responses.BAD_VALUE.status),
+        ("pypi.org", Responses.BAD_VALUE.status),
+    ]
+)
+def test_url_schemes(json, status):
+    """Test type `Url`."""
+    output = Object(
+        properties={
+            Property("field"): Url(schemes=["http", "custom"])
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        ("http://pypi.org/path", Responses.GOOD.status),
+        ("http://pypi.org", Responses.GOOD.status),
+        ("pypi.org", Responses.BAD_VALUE.status),
+        ("://pypi.org", Responses.BAD_VALUE.status),
+        ("http://", Responses.BAD_VALUE.status),
+        ("http:/path", Responses.BAD_VALUE.status),
+        ("", Responses.BAD_VALUE.status),
+    ]
+)
+def test_url_require_netloc(json, status):
+    """Test type `Url`."""
+    output = Object(
+        properties={
+            Property("field"): Url(require_netloc=True)
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
+    else:
+        print(output.last_message)
+
+
+def test_url_return_parsed():
+    """Test type `Url`."""
+    output = Object(
+        properties={
+            Property("field"): Url(return_parsed=True)
+        }
+    ).assemble().run(json={"field": "http://pypi.org/path"})
+
+    assert output.last_status == Responses.GOOD.status
+    assert hasattr(output.data.value["field"], "scheme")
+    assert hasattr(output.data.value["field"], "netloc")
+    assert hasattr(output.data.value["field"], "path")
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "json", "status"),
+    [
+        ({}, __file__, Responses.GOOD.status),
+        ({"exists": True}, __file__, Responses.GOOD.status),
+        ({"is_file": True}, __file__, Responses.GOOD.status),
+        ({"is_dir": False}, __file__, Responses.GOOD.status),
+        ({"is_file": False}, __file__, Responses.CONFLICT.status),
+        ({"is_dir": True}, __file__, Responses.RESOURCE_NOT_FOUND.status),
+        (
+            {"relative_to": Path("tests")},
+            str(Path(__file__).relative_to(Path(__file__).parents[1])),
+            Responses.GOOD.status
+        ),
+        (
+            {"relative_to": Path(__file__).parent},
+            str(Path(__file__).parents[1] / "another_path"),
+            Responses.BAD_VALUE.status
+        ),
+        ({"relative_to": Path(".")}, __file__, Responses.BAD_VALUE.status),
+        (
+            {"cwd": Path("tests"), "is_file": True},
+            Path(__file__).name,
+            Responses.GOOD.status
+        ),
+    ],
+    ids=[
+        "basic", "exists-good", "is_file-good", "is_dir-good",
+        "is_file-conflict", "is_dir-not found", "relative_to-relative-good",
+        "relative_to-absolute-bad", "relative_to-mixed-bad", "cwd",
+    ]
+)
+def test_file_system_object(kwargs, json, status):
+    """Test type `FileSystemObject`."""
+    output = Object(
+        properties={
+            Property("field"): FileSystemObject(**kwargs)
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        if "relative_to" in kwargs:
+            assert Path(json).relative_to(kwargs["relative_to"]) \
+                == output.data.value["field"]
+        elif "cwd" in kwargs:
+            assert output.data.value["field"] == kwargs["cwd"] / json
+        else:
+            assert str(output.data.value["field"]) == json
     else:
         print(output.last_message)

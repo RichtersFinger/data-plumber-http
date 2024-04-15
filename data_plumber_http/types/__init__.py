@@ -80,6 +80,14 @@ class Responses:
         422,
         "Value '{}' in '{}' not allowed (expected {})."
     )
+    RESOURCE_NOT_FOUND = _ProblemInfo(
+        404,
+        "Could not find requested resource '{}' given in '{}'."
+    )
+    CONFLICT = _ProblemInfo(
+        409,
+        "Resource '{}' given in '{}' conflicts with existing resource."
+    )
 
 
 class Output(dict):
@@ -116,9 +124,12 @@ from .integer import Integer
 from .number import Number
 from .object import Object
 from .string import String
+from .url import Url
+from .file_system_object import FileSystemObject
 
 
 __all__ = [
     "Responses",
     "Array", "Boolean", "Float", "Integer", "Number", "Object", "String",
+    "Url", "FileSystemObject",
 ]

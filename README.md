@@ -135,7 +135,7 @@ Its properties are
 #### Array
 An `Array` corresponds to the JSON-type 'array'.
 Its properties are
-* **items** type specification for items of this `Array`
+* **items** type specification for items of this `Array`; if `None`, instead of performing a validation, all JSON-contents are added to the output ("free-form array")
 
 #### String
 A `String` corresponds to the JSON-type 'string'.
@@ -155,6 +155,9 @@ Their properties are
 #### Union Types
 Types can be combined freely by using the `|`-operator.
 A type specification of `Boolean() | String()`, for example, accepts either a boolean- or a string-value.
+
+#### List of Additional Type Definitions
+This package also defines some more higher-level types: `Url`, `FileSystemObject`, ...
 
 #### Custom Types
 When using this extension, custom types can be defined easily by inheriting from an existing type or, at a lower level, from `data_plumber_http._DPType` and
