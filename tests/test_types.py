@@ -31,6 +31,7 @@ from data_plumber_http.types import Responses
         (Number(), 0.1, Responses.GOOD.status),
         (Number(), True, Responses.GOOD.status),
         (Number(), "string1", Responses.BAD_TYPE.status),
+        (Array(), [0, "string1", {}], Responses.GOOD.status),
         (Array(items=Integer()), [0, 1], Responses.GOOD.status),
         (Array(items=Number()), [0, 1.5], Responses.GOOD.status),
         (Array(items=String()), ["string1", "string2"], Responses.GOOD.status),

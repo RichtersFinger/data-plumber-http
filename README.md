@@ -135,7 +135,7 @@ Its properties are
 #### Array
 An `Array` corresponds to the JSON-type 'array'.
 Its properties are
-* **items** type specification for items of this `Array`
+* **items** type specification for items of this `Array`; if `None`, instead of performing a validation, all JSON-contents are added to the output ("free-form array")
 
 #### String
 A `String` corresponds to the JSON-type 'string'.
