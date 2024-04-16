@@ -33,8 +33,24 @@ class Property(_DPKey):
         validation_only: bool = False
     ) -> None:
         self.origin = origin
-        self.name = name or origin
+        if name is None:
+            self._name = origin
+        else:
+            self._name = name
+        if self._name == "":
+            raise ValueError("Empty Property-name is not allowed.")
         self.default = default
         self.required = required
         self.fill_with_none = fill_with_none
         self.validation_only = validation_only
+
+    @property
+    def name(self) -> str:
+        """`Property`'s `name`."""
+        return self._name
+
+    @name.setter
+    def name(self, value) -> None:
+        if value == "":
+            raise ValueError("Empty Property-name is not allowed.")
+        self._name = value

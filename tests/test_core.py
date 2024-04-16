@@ -13,6 +13,27 @@ from data_plumber_http.types import Object, String
 from data_plumber_http.types import Responses
 
 
+def test_property_empty_name():
+    """Test handling of Property with empty `name`."""
+
+    # test name in constructor
+    Property(origin="field1", name="field1")
+    Property(origin="", name="field1")  # this is valid JSON
+    with pytest.raises(ValueError):
+        Property(origin="field1", name="")
+    with pytest.raises(ValueError):
+        Property(origin="", name="")
+    with pytest.raises(ValueError):
+        Property(origin="")
+
+    # test name-setter
+    p = Property("field1")
+    p.name = "field1_name"
+    assert p.name == "field1_name"
+    with pytest.raises(ValueError):
+        p.name = ""
+
+
 def test_property_fill_with_none():
     """Test argument `fill_with_none` of `Property`."""
 
