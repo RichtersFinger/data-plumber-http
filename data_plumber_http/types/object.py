@@ -292,8 +292,9 @@ class Object(_DPType):
         """
         Returns `Pipeline` that processes a `json`-input.
         """
-        def finalizer(data, **kwargs):
-            data.value = self._model(**data.kwargs)
+        def finalizer(data, records, **kwargs):
+            if records[-1].status == Responses.GOOD.status:
+                data.value = self._model(**data.kwargs)
         p = Pipeline(
             exit_on_status=lambda status: status >= 400,
             initialize_output=Output,
