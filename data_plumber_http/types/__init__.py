@@ -121,6 +121,7 @@ from .array import Array
 from .boolean import Boolean
 from .float import Float
 from .integer import Integer
+from .null import Null
 from .number import Number
 from .object import Object
 from .string import String
@@ -130,6 +131,6 @@ from .file_system_object import FileSystemObject
 
 __all__ = [
     "Responses",
-    "Array", "Boolean", "Float", "Integer", "Number", "Object", "String",
-    "Url", "FileSystemObject",
+    "Array", "Boolean", "Float", "Integer", "Null", "Number", "Object",
+    "String", "Url", "FileSystemObject",
 ]
