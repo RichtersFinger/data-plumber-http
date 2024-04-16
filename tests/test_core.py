@@ -13,6 +13,27 @@ from data_plumber_http.types import Object, String
 from data_plumber_http.types import Responses
 
 
+def test_property_empty_name():
+    """Test handling of Property with empty `name`."""
+
+    # test name in constructor
+    Property(origin="field1", name="field1")
+    Property(origin="", name="field1")  # this is valid JSON
+    with pytest.raises(ValueError):
+        Property(origin="field1", name="")
+    with pytest.raises(ValueError):
+        Property(origin="", name="")
+    with pytest.raises(ValueError):
+        Property(origin="")
+
+    # test name-setter
+    p = Property("field1")
+    p.name = "field1_name"
+    assert p.name == "field1_name"
+    with pytest.raises(ValueError):
+        p.name = ""
+
+
 def test_property_fill_with_none():
     """Test argument `fill_with_none` of `Property`."""
 
@@ -56,7 +77,7 @@ def test_property_required():
     assert output.data.value == {"some-string": "test-string"}
 
     output = pipeline.run(json={"another-string": "test-string"})
-    assert output.data.value == {}
+    assert output.data.value == None
     assert output.last_status == Responses.MISSING_REQUIRED.status
     assert "some-string" in output.last_message
     assert "missing" in output.last_message
@@ -131,7 +152,7 @@ def test_property_required_default(default):
         assert output.last_status == Responses.MISSING_REQUIRED.status
         assert "missing" in output.last_message.lower()
         assert "string" in output.last_message
-        assert output.data.value == {}
+        assert output.data.value == None
 
 
 def test_property_origin_name():
@@ -204,7 +225,7 @@ def test_object_pipeline_run_bad_type():
     pipeline = Object(properties={Property("string"): String()}).assemble()
 
     output = pipeline.run(json={"string": 0})
-    assert output.data.value == {}
+    assert output.data.value == None
     assert output.last_status == Responses.BAD_TYPE.status
     print(output.last_message)
 
@@ -258,6 +279,26 @@ def test_object_model():
     assert isinstance(output.data.value, SomeModel)
     assert output.data.value.string == "test-string"
     assert output.data.kwargs == {"model_arg": "test-string"}
+
+
+def test_object_model_missing_arg():
+    """
+    Test argument `model` of `Object` where model-object cannot be
+    constructed.
+    """
+
+    # with explicit model
+    class SomeModel:
+        def __init__(self, model_arg):
+            self.string = model_arg
+    output = Object(
+        model=SomeModel,
+        properties={
+            Property("model_arg", required=True): String()
+        }
+    ).assemble().run(json={})
+
+    assert output.last_status == Responses.MISSING_REQUIRED.status
 
 
 @pytest.mark.parametrize(

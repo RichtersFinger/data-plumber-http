@@ -11,7 +11,7 @@ import pytest
 
 from data_plumber_http.keys import Property
 from data_plumber_http.types \
-    import Array, Boolean, Float, Integer, Number, Object, String, Url, \
+    import Array, Boolean, Float, Integer, Null, Number, Object, String, Url, \
         FileSystemObject
 from data_plumber_http.types import Responses
 
@@ -27,6 +27,8 @@ from data_plumber_http.types import Responses
         (Integer(), 0.1, Responses.BAD_TYPE.status),
         (Float(), 0.1, Responses.GOOD.status),
         (Float(), True, Responses.BAD_TYPE.status),
+        (Null(), None, Responses.GOOD.status),
+        (Null(), True, Responses.BAD_TYPE.status),
         (Number(), 0, Responses.GOOD.status),
         (Number(), 0.1, Responses.GOOD.status),
         (Number(), True, Responses.GOOD.status),
