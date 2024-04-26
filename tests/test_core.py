@@ -10,7 +10,7 @@ from data_plumber import Pipeline
 
 from data_plumber_http.keys import Property
 from data_plumber_http.types import Object, String
-from data_plumber_http.types import Responses
+from data_plumber_http.settings import Responses
 
 
 def test_property_empty_name():

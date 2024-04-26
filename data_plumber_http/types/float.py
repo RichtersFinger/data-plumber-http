@@ -1,9 +1,9 @@
 from typing import Any, Optional
 
-from . import _DPType, Responses
+from . import DPType, Responses
 
 
-class Float(_DPType):
+class Float(DPType):
     """
     A `Float` represents a floating point number.
 

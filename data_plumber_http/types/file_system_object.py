@@ -1,10 +1,10 @@
-from typing import Any, Optional, Callable
+from typing import Any, Optional
 from pathlib import Path
 
-from . import _DPType, Responses
+from . import DPType, Responses
 
 
-class FileSystemObject(_DPType):
+class FileSystemObject(DPType):
     """
     A `FileSystemObject` corresponds to a `pathlib.Path` that is given
     either absolute or relative to the cwd. The output is a

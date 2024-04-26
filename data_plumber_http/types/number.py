@@ -1,9 +1,9 @@
 from typing import Optional
 
-from . import _DPType, Integer, Float
+from . import DPType, Integer, Float
 
 
-class Number(_DPType):
+class Number(DPType):
     """
     A `Number` corresponds to the JSON-type 'number'.
 

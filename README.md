@@ -169,14 +169,17 @@ A type specification of `Boolean() | String()`, for example, accepts either a bo
 This package also defines some more higher-level types: `Url`, `FileSystemObject`, ...
 
 #### Custom Types
-When using this extension, custom types can be defined easily by inheriting from an existing type or, at a lower level, from `data_plumber_http._DPType` and
+When using this extension, custom types can be defined easily by inheriting from an existing type or, at a lower level, from `data_plumber_http.DPType` and
 * defining the `TYPE`-property (python class) as well as
 * implementing the `make`-method.
 As a simple example for this, consider the following type-definition for a string-type that is required to be prefixed with some string:
 ```
-from data_plumber_http.types import _DPType, Responses
+from typing import Any
 
-class PrefixedString(_DPType):
+from data_plumber_http import DPType
+from data_plumber_http.settings import Responses
+
+class PrefixedString(DPType):
     TYPE = str
     def __init__(self, prefix: str):
         self._prefix = prefix
@@ -217,10 +220,10 @@ The `decorators`-subpackage defines (aside from the decorator-factory `flask_han
 * `flask_json`: `request.json`
 
 ### Status Codes
-The status-codes used by `data-plumber-http` are defined in the class `data_plumber_http.Responses`.
-By monkey-patching this class, the status codes can be easily altered to one's individual requirements.
+The status-codes used by `data-plumber-http` are defined in the class `data_plumber_http.settings.Responses`.
+By modifying this class, the status codes can be easily altered to one's individual requirements.
 ```
-from data_plumber_http import Responses
+from data_plumber_http.settings import Responses
 
 Responses.BAD_VALUE.status = 405
 ```

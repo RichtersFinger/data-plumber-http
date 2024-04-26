@@ -1,9 +1,9 @@
 from typing import Any, Optional
 
-from . import _DPType, Responses
+from . import DPType, Responses
 
 
-class Integer(_DPType):
+class Integer(DPType):
     """
     An `Integer` represents an integer number.
 

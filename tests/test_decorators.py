@@ -11,7 +11,8 @@ import pytest
 from flask import Flask, Response
 
 from data_plumber_http.keys import Property
-from data_plumber_http.types import Responses, Object, String, Integer
+from data_plumber_http.types import Object, String, Integer
+from data_plumber_http.settings import Responses
 from data_plumber_http.decorators \
      import flask_handler, flask_args, flask_json
 

@@ -1,7 +1,7 @@
-from . import _DPType, Array, Boolean, Float, Integer, Null, Object, String
+from . import DPType, Array, Boolean, Float, Integer, Null, Object, String
 
 
-class Any(_DPType):
+class Any(DPType):
     """
     `Any` is a comination of the types `Array`, `Boolean`, `Float`,
     `Integer`, `Null`, `Object`, and `String`.

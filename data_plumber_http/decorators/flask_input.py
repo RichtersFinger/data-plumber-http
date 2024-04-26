@@ -5,7 +5,7 @@ from functools import wraps
 from flask import request, Response
 from data_plumber import Pipeline
 
-from data_plumber_http.types import Responses
+from data_plumber_http.settings import Responses
 
 
 def flask_args():

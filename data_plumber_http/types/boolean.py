@@ -1,9 +1,9 @@
 from typing import Any
 
-from . import _DPType, Responses
+from . import DPType, Responses
 
 
-class Boolean(_DPType):
+class Boolean(DPType):
     """
     A `Boolean` corresponds to the JSON-type 'boolean'.
     """

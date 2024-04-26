@@ -13,7 +13,7 @@ from data_plumber_http.keys import Property
 from data_plumber_http.types \
     import Any, Array, Boolean, Float, Integer, Null, Number, \
         Object, String, Url, FileSystemObject
-from data_plumber_http.types import Responses
+from data_plumber_http.settings import Responses
 
 
 @pytest.mark.parametrize(

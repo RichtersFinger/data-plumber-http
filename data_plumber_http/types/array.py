@@ -1,9 +1,9 @@
 from typing import Any, Optional
 
-from . import _DPType, Responses
+from . import DPType, Responses
 
 
-class Array(_DPType):
+class Array(DPType):
     """
     An `Array` corresponds to the JSON-type 'array'.
 
@@ -13,7 +13,7 @@ class Array(_DPType):
     """
     TYPE = list
 
-    def __init__(self, items: Optional[_DPType] = None):
+    def __init__(self, items: Optional[DPType] = None):
         self._items = items
 
     def make(self, json, loc: str) -> tuple[Any, str, int]:

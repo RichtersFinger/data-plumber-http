@@ -1,10 +1,10 @@
 from typing import Any, Optional
 import re
 
-from . import _DPType, Responses
+from . import DPType, Responses
 
 
-class String(_DPType):
+class String(DPType):
     """
     A `String` corresponds to the JSON-type 'string'.
 

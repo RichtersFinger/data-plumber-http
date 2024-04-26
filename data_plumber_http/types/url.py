@@ -1,10 +1,10 @@
 from typing import Any, Optional
 from urllib.parse import urlparse
 
-from . import _DPType, Responses
+from . import DPType, Responses
 
 
-class Url(_DPType):
+class Url(DPType):
     """
     A `Url` essentially is a `String` which has to match a url-format of
     `<scheme>://<netloc>/<path>;<params>?<query>#<fragment>`. The output

@@ -9,7 +9,7 @@ import pytest
 
 from data_plumber_http.keys import Property
 from data_plumber_http.types import Boolean, Object, String
-from data_plumber_http.types import Responses
+from data_plumber_http.settings import Responses
 
 
 def test_object_additional_properties_accept_only():

@@ -1,20 +1,22 @@
 from typing import Any
-from dataclasses import dataclass
 import abc
 
+from data_plumber_http.settings \
+    import Responses, ProblemInfo as _ProblemInfo  # latter import for legacy
 
-class _DPType(metaclass=abc.ABCMeta):
+
+class DPType(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def TYPE(self):
         raise NotImplementedError(
-            "Property 'TYPE' needs to be defined when using abstract base '_DPType'."
+            "Property 'TYPE' needs to be defined when using abstract base 'DPType'."
         )
 
     @abc.abstractmethod
     def make(self, json, loc: str) -> tuple[Any, str, int]:
         raise NotImplementedError(
-            "Method 'make' needs to be defined when using abstract base '_DPType'."
+            "Method 'make' needs to be defined when using abstract base 'DPType'."
         )
 
     @property
@@ -22,7 +24,7 @@ class _DPType(metaclass=abc.ABCMeta):
         return self.TYPE.__name__
 
     def __or__(self, other):
-        class _(_DPType):
+        class _(DPType):
             _TYPES = [self, other]
             TYPE = self.TYPE | other.TYPE
             __name__ = f"{self.__name__} | {other.__name__}"
@@ -33,7 +35,7 @@ class _DPType(metaclass=abc.ABCMeta):
                     # check whether types match at all
                     if not isinstance(json, _type.TYPE):
                         continue
-                    # try to make instance of _DPType
+                    # try to make instance of DPType
                     last = _type.make(json, loc)
                     # try next option if not successful
                     if last[2] != Responses.GOOD.status:
@@ -55,39 +57,7 @@ class _DPType(metaclass=abc.ABCMeta):
         return _()
 
 
-@dataclass
-class _ProblemInfo:
-    status: int
-    msg: str
-
-
-class Responses:
-    GOOD = _ProblemInfo(0, "")
-    MISSING_OPTIONAL = _ProblemInfo(1, "")
-    UNKNOWN_PROPERTY = _ProblemInfo(
-        400,
-        "Argument '{}' in '{}' not allowed (accepted: {})."
-    )
-    MISSING_REQUIRED = _ProblemInfo(
-        400,
-        "Object '{}' missing required property '{}'."
-    )
-    BAD_TYPE = _ProblemInfo(
-        422,
-        "Argument '{}' in '{}' has bad type. Expected '{}' but found '{}'."
-    )
-    BAD_VALUE = _ProblemInfo(
-        422,
-        "Value '{}' in '{}' not allowed (expected {})."
-    )
-    RESOURCE_NOT_FOUND = _ProblemInfo(
-        404,
-        "Could not find requested resource '{}' given in '{}'."
-    )
-    CONFLICT = _ProblemInfo(
-        409,
-        "Resource '{}' given in '{}' conflicts with existing resource."
-    )
+_DPType = DPType  # legacy
 
 
 class Output(dict):
@@ -132,7 +102,7 @@ from .any import Any
 
 
 __all__ = [
-    "Responses",
+    "DPType",
     "Any", "Array", "Boolean", "Float", "Integer", "Null", "Number", "Object",
     "String", "Url", "FileSystemObject",
 ]
