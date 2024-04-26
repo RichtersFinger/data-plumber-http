@@ -1,6 +1,7 @@
 from typing import TypeAlias, Mapping, Optional, Any
 
 from data_plumber import Pipeline, Stage
+from data_plumber.output import StageRecord
 
 from data_plumber_http.keys import _DPKey, Property
 from . import _DPType, Responses, Output
@@ -20,14 +21,21 @@ class Object(_DPType):
     properties -- mapping for explicitly expected contents of this
                   `Object`
                   (default `None`)
-    additional_properties -- type for implicitly expected contents of
-                             this `Object` (mutually exclusive with
-                             `accept_only`)
-                             (default `None`)
-    accept_only -- if set, on execution a `json` is rejected with 400
-                   status if it contains a key that is not in
-                   `accept_only` (mutually exclusive with
-                   `additional_properties`)
+
+    Mutually exclusive arguments:
+    additional_properties -- either boolean or field type (`_DPType`)
+                             boolean: if `True`, ignore any additional
+                             fields; if `False`, respond with
+                             `Responses.UNKNOWN_PROPERTY` for fields
+                             that are not listed in `properties`
+                             type: required type specification for
+                             implicitly expected contents of this
+                             `Object`; corresponding fields in `json`
+                             are added to the output
+                             (default `None`; treated like `True`)
+    accept_only -- if set, on execution a `json` is rejected with
+                   `Responses.UNKNOWN_PROPERTY` if it contains a key
+                   that is not in `accept_only`
                    (default `None`)
     free_form -- if `True`, accept and use any content that has not been
                  defined explicitly via `properties`
@@ -39,7 +47,7 @@ class Object(_DPType):
         self,
         model: Optional[type] = None,
         properties: Optional[Properties] = None,
-        additional_properties: Optional[_DPType] = None,
+        additional_properties: Optional[bool | _DPType] = None,
         accept_only: Optional[list[str]] = None,
         free_form: bool = False
     ) -> None:
@@ -74,9 +82,18 @@ class Object(_DPType):
                 f"Value of 'accept_only' ({accept_only}) "
                 + f"conflicts with value of 'free_form' ({free_form})."
             )
-        self._additional_properties = additional_properties
-        self._accept_only = accept_only
         self._free_form = free_form
+        self._accept_only = accept_only
+        if isinstance(additional_properties, bool):
+            self._additional_properties = additional_properties
+            self._additional_properties_typespec = None
+            if not additional_properties:
+                self._accept_only = list(
+                    p.origin for p in properties.keys()
+                ) if properties is not None else []
+        else:
+            self._additional_properties = True
+            self._additional_properties_typespec = additional_properties
 
     @staticmethod
     def _reject_unknown_args(accepted, loc):
@@ -293,8 +310,14 @@ class Object(_DPType):
         Returns `Pipeline` that processes a `json`-input.
         """
         def finalizer(data, records, **kwargs):
-            if records[-1].status == Responses.GOOD.status:
-                data.value = self._model(**data.kwargs)
+            try:
+                if records[-1].status == Responses.GOOD.status:
+                    data.value = self._model(**data.kwargs)
+            except IndexError:  # empty Object
+                records.append(StageRecord(
+                    0, "finalizer", Responses.GOOD.msg, Responses.GOOD.status
+                ))
+                data.value = self._model()
         p = Pipeline(
             exit_on_status=lambda status: status >= 400,
             initialize_output=Output,
@@ -306,7 +329,7 @@ class Object(_DPType):
                 __loc,
                 **{__loc: self._reject_unknown_args(self._accept_only, __loc)}
             )
-        elif self._additional_properties is not None:
+        if self._additional_properties_typespec is not None:
             # additional properties
             p.append(
                 f"{__loc}[additionalProperties]",
@@ -314,12 +337,12 @@ class Object(_DPType):
                     f"{__loc}[additionalProperties]":
                         self._process_additional_properties(
                             [k.origin for k in self._properties.keys()],
-                            self._additional_properties,
+                            self._additional_properties_typespec,
                             _loc
                         )
                 }
             )
-        elif self._free_form:
+        if self._free_form:
             # free-form
             p.append(
                 f"{__loc}[freeForm]",
