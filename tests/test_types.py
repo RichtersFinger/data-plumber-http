@@ -11,8 +11,8 @@ import pytest
 
 from data_plumber_http.keys import Property
 from data_plumber_http.types \
-    import Array, Boolean, Float, Integer, Null, Number, Object, String, Url, \
-        FileSystemObject
+    import Any, Array, Boolean, Float, Integer, Null, Number, \
+        Object, String, Url, FileSystemObject
 from data_plumber_http.types import Responses
 
 
@@ -480,3 +480,28 @@ def test_file_system_object(kwargs, json, status):
             assert str(output.data.value["field"]) == json
     else:
         print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        ([1, "string1"], Responses.GOOD.status),
+        (True, Responses.GOOD.status),
+        (0.1, Responses.GOOD.status),
+        (1, Responses.GOOD.status),
+        (None, Responses.GOOD.status),
+        ({"inner-field": "value"}, Responses.GOOD.status),
+        ("string1", Responses.GOOD.status),
+    ]
+)
+def test_any(json, status):
+    """Test type `Any`."""
+    output = Object(
+        properties={
+            Property("field"): Any()
+        }
+    ).assemble().run(json={"field": json})
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value["field"] == json
