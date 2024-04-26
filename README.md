@@ -125,11 +125,16 @@ An `Object` corresponds to the JSON-type 'object' and is the base for any input 
 Calling `assemble` on an `Object`-instance returns a `data-plumber`-`Pipeline`.
 A `Pipeline.run` expects the keyword argument `json`, a dictionary containing the input data.
 
-Its properties are
+Its regular properties are
 * **model** data model (python class) for this `Object` (gets passed the entire output of a `Pipeline`-run)
 * **properties** mapping for explicitly expected contents of this `Object`
-* **additional_properties** -- type for implicitly expected contents of this `Object` (mutually exclusive with `accept_only`); if this type is set, all contents of the input which are not listed in `properties` have to satisfy the requirements imposed by that type
-* **accept_only** -- list of accepted field names; if set, on execution a `json` is rejected with 400 status if it contains a key that is not in `accept_only` (mutually exclusive with `additional_properties`)
+
+Additionally, there are different options to configure how unknown properties in the input are treated.
+These are mutually exclusive:
+* **additional_properties** -- either boolean or field type
+  * boolean: if `True`, ignore any additional fields; if `False`, respond with `Responses.UNKNOWN_PROPERTY` for fields that are not listed in `properties`
+  * type: required type specification for implicitly expected contents of this `Object`; if this type is set, all contents of the input which are not listed in `properties` have to satisfy the requirements imposed by that type; corresponding fields in `json` are added to the output
+* **accept_only** -- list of accepted field names; if set, on execution a `json` is rejected with 400 status if it contains a key that is not in `accept_only`
 * **free_form** -- whether to accept and use any content that has not been defined explicitly via `properties`
 
 #### Array
@@ -151,6 +156,10 @@ The types `Integer`, `Float`, and `Number` (the latter corresponding to the JSON
 Their properties are
 * **values** list of values allowed in this field
 * **range_** tuple of lower and upper bound for values in this field
+
+#### Any
+The `Any`-type can be used to indicate a field to be free-form.
+Any regular JSON-type (`Array` (free-form), `Boolean`, `Float`, `Integer`, `Null`, `Object` (free-form), and `String`) is accepted here.
 
 #### Union Types
 Types can be combined freely by using the `|`-operator.
