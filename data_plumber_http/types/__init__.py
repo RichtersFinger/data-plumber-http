@@ -122,12 +122,12 @@ from .boolean import Boolean
 from .float import Float
 from .integer import Integer
 from .null import Null
-from .number import Number
 from .object import Object
 from .string import String
 from .url import Url
 from .file_system_object import FileSystemObject
-
+# import last due to dependence on base-types
+from .number import Number
 from .any import Any
 
 

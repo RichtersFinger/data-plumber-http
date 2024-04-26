@@ -18,7 +18,7 @@ class Number(_DPType):
         return None
 
     def __new__(
-        self,
+        cls,
         values: Optional[list[int | float]] = None,
         range_: Optional[tuple[int | float, int | float]] = None
     ):
