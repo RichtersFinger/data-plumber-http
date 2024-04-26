@@ -7,7 +7,7 @@ from data_plumber_http.keys import _DPKey, Property
 from . import _DPType, Responses, Output
 
 
-Properties: TypeAlias = Mapping[_DPKey, "_DPType | Properties"]
+Properties: TypeAlias = Mapping[_DPKey, _DPType]
 
 
 class Object(_DPType):
@@ -62,7 +62,7 @@ class Object(_DPType):
                 + str(
                     [
                         k.name for k in properties.keys()
-                        if k.name in names or names.add(k.name)
+                        if k.name in names or names.add(k.name)  # type: ignore [func-returns-value]
                     ]
                 )
             )
@@ -354,6 +354,8 @@ class Object(_DPType):
                 }
             )
         for k, v in self._properties.items():
+            if not isinstance(k, Property):
+                continue
             # k.name: validate existence
             if k.required and k.default is None:
                 p.append(

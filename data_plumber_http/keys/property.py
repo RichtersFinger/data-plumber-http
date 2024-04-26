@@ -27,7 +27,7 @@ class Property(_DPKey):
         self,
         origin: str,
         name: Optional[str] = None,
-        default: Optional[Callable[[...], Any] | Any] = None,
+        default: Optional[Callable[..., Any] | Any] = None,
         required: bool = False,
         fill_with_none: bool = False,
         validation_only: bool = False

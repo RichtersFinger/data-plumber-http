@@ -14,7 +14,8 @@ class Number(_DPType):
               (default `None`)
     """
     TYPE = None
-    make = None
+    def make(self, _, __):
+        return None
 
     def __new__(
         self,
