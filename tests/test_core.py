@@ -480,3 +480,27 @@ def test_object_unknown(accept, json):
         assert "another-string" in output.last_message
     else:
         assert output.last_status == Responses.GOOD.status
+
+
+def test_object_constructed_from_other_object():
+    """Test property `properties` of `Object`."""
+    obj1 = Object(
+        properties={
+            Property("string"): String()
+        }
+    )
+    obj2 = Object(
+        properties={
+            Property("another-string"): String()
+        }
+    )
+
+    json = {
+        "string": "string2",
+        "another-string": "string2"
+    }
+    output = Object(
+        properties=obj1.properties | obj2.properties
+    ).assemble().run(json=json)
+    assert output.last_status == Responses.GOOD.status
+    assert output.data.value == json

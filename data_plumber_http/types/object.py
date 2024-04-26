@@ -52,7 +52,7 @@ class Object(_DPType):
         free_form: bool = False
     ) -> None:
         self._model = model or dict
-        self._properties = properties or {}
+        self.properties = properties or {}
 
         if properties is not None \
                 and len(set(k.name for k in properties.keys())) < len(properties):
@@ -336,7 +336,7 @@ class Object(_DPType):
                 **{
                     f"{__loc}[additionalProperties]":
                         self._process_additional_properties(
-                            [k.origin for k in self._properties.keys()],
+                            [k.origin for k in self.properties.keys()],
                             self._additional_properties_typespec,
                             _loc
                         )
@@ -349,11 +349,11 @@ class Object(_DPType):
                 **{
                     f"{__loc}[freeForm]":
                         self._process_free_form(
-                            [k.origin for k in self._properties.keys()]
+                            [k.origin for k in self.properties.keys()]
                         )
                 }
             )
-        for k, v in self._properties.items():
+        for k, v in self.properties.items():
             if not isinstance(k, Property):
                 continue
             # k.name: validate existence

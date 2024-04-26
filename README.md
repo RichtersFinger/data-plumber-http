@@ -127,7 +127,7 @@ A `Pipeline.run` expects the keyword argument `json`, a dictionary containing th
 
 Its regular properties are
 * **model** data model (python class) for this `Object` (gets passed the entire output of a `Pipeline`-run)
-* **properties** mapping for explicitly expected contents of this `Object`
+* **properties** mapping for explicitly expected contents of this `Object`; this mapping is stored as the public property `properties`
 
 Additionally, there are different options to configure how unknown properties in the input are treated.
 These are mutually exclusive:
