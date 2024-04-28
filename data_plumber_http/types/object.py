@@ -3,11 +3,12 @@ from typing import TypeAlias, Mapping, Optional, Any
 from data_plumber import Pipeline, Stage
 from data_plumber.output import StageRecord
 
+from data_plumber_http.output import Output
 from data_plumber_http.keys import DPKey, Property
-from . import DPType, Responses, Output
+from . import DPType, Responses
 
 
-Properties: TypeAlias = Mapping[DPKey, DPType]
+Properties: TypeAlias = Mapping[DPKey, "DPType | Properties"]
 
 
 class Object(DPType):
@@ -54,14 +55,20 @@ class Object(DPType):
         self._model = model or dict
         self.properties = properties or {}
 
-        if properties is not None \
-                and len(set(k.name for k in properties.keys())) < len(properties):  # TODO: OneOf/AllOf
+        if properties is not None:
+            _properties: Optional[list[Property]] = list(
+                k for k in properties.keys() if isinstance(k, Property)
+            )
+        else:
+            _properties = properties
+        if _properties is not None \
+                and len(set(k.name for k in _properties)) < len(_properties):  # TODO: OneOf/AllOf
             names = set()
             raise ValueError(
                 "Conflicting property name(s) in Object: "
                 + str(
                     [
-                        k.name for k in properties.keys()
+                        k.name for k in _properties
                         if k.name in names or names.add(k.name)  # type: ignore [func-returns-value]
                     ]
                 )
@@ -252,8 +259,6 @@ class Object(DPType):
                 }
             )
         for k, v in self.properties.items():
-            if not isinstance(k, Property):
-                continue
             p.append(k.assemble(v, _loc))
 
         return p

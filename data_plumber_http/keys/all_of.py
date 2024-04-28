@@ -1,5 +1,5 @@
-# from . import DPKey
-# 
-# class AllOf(DPKey):
-#     pass
-# 
+from . import DPKey
+
+
+class AllOf(DPKey):
+    pass

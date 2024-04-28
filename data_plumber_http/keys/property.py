@@ -2,6 +2,7 @@ from typing import Optional, Callable, Any
 
 from data_plumber import Pipeline, Stage
 
+from data_plumber_http.output import Output
 from data_plumber_http.settings import Responses
 from . import DPKey
 
@@ -19,12 +20,13 @@ class Property(DPKey):
                as default if property is missing in request
                (default `None`)
     required -- if `True`, this property is marked as required
-                (default False)
+                (default `False`)
     fill_with_none -- if `True`, fill fields of missing arguments
                       without default with `None`
                       (default `False`)
     validation_only -- skip exporting this property to the resulting
                        data and only perform validation
+                       (default `False`)
     """
     def __init__(
         self,
@@ -160,15 +162,22 @@ class Property(DPKey):
             message=lambda **kwargs: Responses.GOOD.msg
         )
 
-    def assemble(self, dptype: "_DPType", loc: Optional[str]) -> Pipeline:
+    def assemble(self, value: "DPType", loc: Optional[str]) -> Pipeline:
         """
         Assemble `Pipeline` that processes this `Property`.
 
         Keyword arguments:
-        dptype -- `_DPType` of this `Property`
+        value -- `DPType` associated with this `Property`
         loc -- position in original `json`
         """
-        p = Pipeline()
+        def finalizer(data, records, **kwargs):
+            if records[-1].status == Responses.GOOD.status:
+                data.value = kwargs.get(f"EXPORT_{self.name}")
+        p = Pipeline(
+            exit_on_status=lambda status: status >= 400,
+            initialize_output=Output,
+            finalize_output=finalizer
+        )
         _loc = loc or "."
         # k.name: validate existence
         if self.required and self.default is None:
@@ -181,14 +190,14 @@ class Property(DPKey):
         # {k.name}[type]: validate type
         p.append(
             f"{self.name}[type]",
-            **{f"{self.name}[type]": self._arg_has_type(self, dptype, _loc)}
+            **{f"{self.name}[type]": self._arg_has_type(self, value, _loc)}
         )
         # {k.name}[dptype]: validate, make, and export instance as
         #                   f"EXPORT_{k.name}" (if valid)
         p.append(
             f"{self.name}[dptype]",
             **{f"{self.name}[dptype]": self._make_instance(
-                self, dptype, (loc or "") + "." + self.origin
+                self, value, (loc or "") + "." + self.origin
             )}
         )
         if self.validation_only:

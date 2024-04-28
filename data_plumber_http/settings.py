@@ -8,8 +8,8 @@ class ProblemInfo:
 
 
 class Responses:
-    GOOD = ProblemInfo(0, "")
-    MISSING_OPTIONAL = ProblemInfo(1, "")
+    GOOD = ProblemInfo(0, "OK")
+    MISSING_OPTIONAL = ProblemInfo(1, "Missing optional arg.")
     UNKNOWN_PROPERTY = ProblemInfo(
         400,
         "Argument '{}' in '{}' not allowed (accepted: {})."
@@ -33,4 +33,12 @@ class Responses:
     CONFLICT = ProblemInfo(
         409,
         "Resource '{}' given in '{}' conflicts with existing resource."
+    )
+    MISSING_REQUIRED_ONEOF = ProblemInfo(
+        400,
+        "No match for required OneOf '{}' in '{}'."
+    )
+    MULTIPLE_ONEOF = ProblemInfo(
+        400,
+        "Multiple matches ('{}') for OneOf '{}' in '{}'."
     )
