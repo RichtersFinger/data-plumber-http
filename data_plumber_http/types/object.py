@@ -171,6 +171,7 @@ class Object(DPType):
         Keyword arguments:
         keys -- list of field names defined in the original `Object`
         """
+        print(keys)
         return Stage(
             primer=lambda json, **kwargs:
                 {k: v for k, v in json.items() if k not in keys},
@@ -253,8 +254,13 @@ class Object(DPType):
                 f"{__loc}[freeForm]",
                 **{
                     f"{__loc}[freeForm]":
-                        self._process_free_form(  # TODO: OneOf/AllOf
-                            [k.origin for k in self.properties.keys()]
+                        self._process_free_form(
+                            list(set().union(
+                                *[
+                                    k.get_origins(v)
+                                    for k, v in self.properties.items()
+                                ]
+                            ))
                         )
                 }
             )

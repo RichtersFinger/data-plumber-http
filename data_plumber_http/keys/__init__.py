@@ -9,6 +9,15 @@ Values: TypeAlias = "DPType" | Mapping["DPKey", "Values"]
 
 class DPKey(metaclass=abc.ABCMeta):
     @abc.abstractmethod
+    def get_origins(self, value: Values) -> list[str]:
+        """
+        Returns list of origins involved with this key and `value`.
+        """
+        raise NotImplementedError(
+            "Method 'get_origins' needs to be defined when using abstract base 'DPKey'."
+        )
+
+    @abc.abstractmethod
     def assemble(self, value: Values, loc: str) -> Pipeline:
         """
         Returns `Pipeline` that processes the given `value` for this key.

@@ -43,6 +43,12 @@ class OneOf(_ConditionalKey):
         self.required = required
         self.validation_only = validation_only
 
+    def get_origins(self, value):
+        origins = []
+        for k, v in value.items():
+            origins.extend(k.get_origins(v))
+        return origins
+
     @staticmethod
     def _arg_exists_hard(loc, name):
         return Stage(

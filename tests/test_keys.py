@@ -405,3 +405,43 @@ def test_all_of_one_of_complex_objects(json, status):
         assert output.data.value == json
     else:
         print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        ({"str": True}, Responses.MISSING_REQUIRED_ONEOF.status),  # TODO: correct Response?
+        ({"str2": True}, Responses.MISSING_REQUIRED_ALLOF.status),  # TODO: correct Response?
+        ({"str3": True}, Responses.MISSING_REQUIRED_ONEOF.status),  # TODO: correct Response?
+        ({"str4": True}, Responses.MISSING_REQUIRED_ONEOF.status),  # TODO: correct Response?
+        ({"str5": "string"}, Responses.GOOD.status),
+    ]
+)
+def test_key_types_in_free_form_object(json, status):
+    """Test occurrence of different key-types in free-form `Object`."""
+    output = Object(
+        properties={
+            OneOf("str"): {
+                Property("str"): String(),
+            },
+            AllOf("str2"): {
+                Property("str2"): String(),
+            },
+            OneOf("str"): {
+                AllOf("str3"): {
+                    Property("str3"): String(),
+                },
+                AllOf("str4"): {
+                    Property("str4"): String(),
+                },
+            },
+        },
+        free_form=True
+    ).assemble().run(json=json)
+
+    print(output.data.value)
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value == json
+    else:
+        print(output.last_message)

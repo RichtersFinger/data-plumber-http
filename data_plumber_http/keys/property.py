@@ -55,6 +55,9 @@ class Property(DPKey):
             raise ValueError("Empty Property-name is not allowed.")
         self._name = value
 
+    def get_origins(self, value):
+        return [self.origin]
+
     @staticmethod
     def _arg_exists_hard(k, loc):
         return Stage(
