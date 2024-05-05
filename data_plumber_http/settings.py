@@ -38,6 +38,10 @@ class Responses:
         400,
         "No match for required OneOf '{}' in '{}' ({})."
     )
+    BAD_VALUE_IN_ONEOF = ProblemInfo(
+        0,  # gets overridden by child-status
+        "Bad value encountered in OneOf '{}' in '{}' ({})."
+    )
     MULTIPLE_ONEOF = ProblemInfo(
         400,
         "Multiple matches ('{}') for OneOf '{}' in '{}'."
@@ -45,4 +49,8 @@ class Responses:
     MISSING_REQUIRED_ALLOF = ProblemInfo(
         400,
         "Missing parts for required AllOf '{}' in '{}' ({})."
+    )
+    BAD_VALUE_IN_ALLOF = ProblemInfo(
+        0,  # gets overridden by child-status
+        "Bad value encountered in AllOf '{}' in '{}' ({})."
     )

@@ -47,12 +47,19 @@ class AllOf(_ConditionalKey):
 
     @staticmethod
     def _arg_exists_hard(loc, name):
+        def status(primer, json, EXPORT_options, **kwargs):
+            if len(primer) == 0:
+                return Responses.GOOD.status
+            for k in json:
+                if k in EXPORT_options \
+                        and EXPORT_options[k].last_status != Responses.GOOD.status:
+                    return EXPORT_options[k].last_status
+            return Responses.MISSING_REQUIRED_ALLOF.status
+
         return Stage(
             primer=lambda EXPORT_options, EXPORT_matches, **kwargs:
                 set(EXPORT_options.keys()).difference(set(EXPORT_matches)),
-            status=lambda primer, **kwargs:
-                Responses.GOOD.status if len(primer) == 0
-                else Responses.MISSING_REQUIRED_ALLOF.status,
+            status=status,
             message=lambda primer, EXPORT_options, **kwargs:
                 Responses.GOOD.msg if len(primer) == 0
                 else Responses.MISSING_REQUIRED_ALLOF.msg.format(
@@ -68,15 +75,33 @@ class AllOf(_ConditionalKey):
         )
 
     @staticmethod
-    def _arg_exists_soft():
+    def _arg_exists_soft(loc, name):
+        def status(primer, json, EXPORT_options, **kwargs):
+            if len(primer) == 0:
+                return Responses.GOOD.status
+            for k in json:
+                if k in EXPORT_options \
+                        and EXPORT_options[k].last_status != Responses.GOOD.status:
+                    return EXPORT_options[k].last_status
+            return Responses.MISSING_OPTIONAL.status
+
+        def message(primer, json, EXPORT_options, **kwargs):
+            if len(primer) == 0:
+                return Responses.GOOD.msg
+            for k in json:
+                if k in EXPORT_options:
+                    return Responses.BAD_VALUE_IN_ALLOF.msg.format(
+                        name,
+                        loc,
+                        EXPORT_options[k].last_message
+                    )
+            return Responses.MISSING_OPTIONAL.msg
+
         return Stage(
             primer=lambda EXPORT_options, EXPORT_matches, **kwargs:
                 set(EXPORT_options.keys()).difference(set(EXPORT_matches)),
-            status=lambda primer, **kwargs:
-                Responses.GOOD.status if len(primer) == 0
-                else Responses.MISSING_OPTIONAL.status,
-            message=lambda primer, **kwargs:
-                "" if len(primer) == 0 else Responses.MISSING_OPTIONAL.msg
+            status=status,
+            message=message
         )
 
     @staticmethod
@@ -122,7 +147,10 @@ class AllOf(_ConditionalKey):
         else:
             p.append(
                 f"{self.name}[exists]",
-                **{f"{self.name}[exists]": self._arg_exists_soft()}
+                **{
+                    f"{self.name}[exists]":
+                        self._arg_exists_soft(_loc, self.name)
+                }
             )
 
         # stop here if requested

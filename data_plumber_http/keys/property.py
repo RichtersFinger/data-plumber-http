@@ -81,7 +81,8 @@ class Property(DPKey):
                 Responses.GOOD.status if primer
                 else Responses.MISSING_OPTIONAL.status,
             message=lambda primer, **kwargs:
-                "" if primer else Responses.MISSING_OPTIONAL.msg
+                Responses.GOOD.msg if primer
+                else Responses.MISSING_OPTIONAL.msg
         )
 
     @staticmethod

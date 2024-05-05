@@ -18,7 +18,7 @@ from data_plumber_http.settings import Responses
     [
         ({"str": "string"}, Responses.GOOD.status),
         ({"bool": True}, Responses.GOOD.status),
-        ({"bool": 0.1}, Responses.MISSING_REQUIRED_ONEOF.status),
+        ({"bool": 0.1}, Responses.BAD_TYPE.status),
         ({"str": "string", "bool": True}, Responses.MULTIPLE_ONEOF.status),
     ]
 )
@@ -187,7 +187,7 @@ def test_key_default_callable(properties, json):
     [
         ({"str": "string"}, Responses.GOOD.status),
         ({"bool": True}, Responses.GOOD.status),
-        ({"bool": 0.1}, Responses.MISSING_REQUIRED_ONEOF.status),
+        ({"bool": 0.1}, Responses.BAD_TYPE.status),
         ({"str": "string", "bool": True}, Responses.MULTIPLE_ONEOF.status),
     ]
 )
@@ -214,7 +214,7 @@ def test_one_of_validation_only(json, status):
     [
         ({"str": "string"}, Responses.MISSING_REQUIRED_ALLOF.status),
         ({"bool": True}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"str": "string", "bool": 0.1}, Responses.MISSING_REQUIRED_ALLOF.status),
+        ({"str": "string", "bool": 0.1}, Responses.BAD_TYPE.status),
         ({"str": "string", "bool": True}, Responses.GOOD.status),
     ]
 )
@@ -242,7 +242,7 @@ def test_all_of_simple(json, status):
         ({"str": "string"}, Responses.MISSING_REQUIRED_ALLOF.status),
         ({"bool": True}, Responses.MISSING_REQUIRED_ALLOF.status),
         ({"str": "string", "bool": True}, Responses.GOOD.status),
-        ({"str": "string", "bool": 0.1}, Responses.MISSING_REQUIRED_ALLOF.status),
+        ({"str": "string", "bool": 0.1}, Responses.BAD_TYPE.status),
     ]
 )
 def test_all_of_validation_only(json, status):
@@ -410,10 +410,10 @@ def test_all_of_one_of_complex_objects(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str": True}, Responses.MISSING_REQUIRED_ONEOF.status),  # TODO: correct Response?
-        ({"str2": True}, Responses.MISSING_REQUIRED_ALLOF.status),  # TODO: correct Response?
-        ({"str3": True}, Responses.MISSING_REQUIRED_ONEOF.status),  # TODO: correct Response?
-        ({"str4": True}, Responses.MISSING_REQUIRED_ONEOF.status),  # TODO: correct Response?
+        ({"str": True}, Responses.BAD_TYPE.status),
+        ({"str2": True}, Responses.BAD_TYPE.status),
+        ({"str3": True}, Responses.BAD_TYPE.status),
+        ({"str4": True}, Responses.BAD_TYPE.status),
         ({"str5": "string"}, Responses.GOOD.status),
     ]
 )
@@ -427,7 +427,7 @@ def test_key_types_in_free_form_object(json, status):
             AllOf("str2"): {
                 Property("str2"): String(),
             },
-            OneOf("str"): {
+            OneOf("str3|str4"): {
                 AllOf("str3"): {
                     Property("str3"): String(),
                 },
@@ -439,7 +439,6 @@ def test_key_types_in_free_form_object(json, status):
         free_form=True
     ).assemble().run(json=json)
 
-    print(output.data.value)
     assert output.last_status == status
     if status == Responses.GOOD.status:
         assert output.data.value == json

@@ -51,10 +51,17 @@ class OneOf(_ConditionalKey):
 
     @staticmethod
     def _arg_exists_hard(loc, name):
+        def status(json, EXPORT_options, EXPORT_matches, **kwargs):
+            if EXPORT_matches:
+                return Responses.GOOD.status
+            for k in json:
+                if k in EXPORT_options \
+                        and EXPORT_options[k].last_status != Responses.GOOD.status:
+                    return EXPORT_options[k].last_status
+            return Responses.MISSING_REQUIRED_ONEOF.status
+
         return Stage(
-            status=lambda EXPORT_matches, **kwargs:
-                Responses.GOOD.status if EXPORT_matches
-                else Responses.MISSING_REQUIRED_ONEOF.status,
+            status=status,
             message=lambda EXPORT_options, EXPORT_matches, **kwargs:
                 Responses.GOOD.msg if EXPORT_matches
                 else Responses.MISSING_REQUIRED_ONEOF.msg.format(
@@ -62,7 +69,7 @@ class OneOf(_ConditionalKey):
                     loc,
                     ", ".join(
                         map(
-                            lambda x: f"'{x}': \"{EXPORT_options[x].last_message or 'missing'}\"",
+                            lambda x: f"'{x}': \"{EXPORT_options[x].last_message or '<missing>'}\"",
                             EXPORT_options.keys()
                         )
                     )
@@ -70,13 +77,31 @@ class OneOf(_ConditionalKey):
         )
 
     @staticmethod
-    def _arg_exists_soft():
+    def _arg_exists_soft(loc, name):
+        def status(json, EXPORT_options, EXPORT_matches, **kwargs):
+            if EXPORT_matches:
+                return Responses.GOOD.status
+            for k in json:
+                if k in EXPORT_options \
+                        and EXPORT_options[k].last_status != Responses.GOOD.status:
+                    return EXPORT_options[k].last_status
+            return Responses.MISSING_OPTIONAL.status
+
+        def message(json, EXPORT_options, EXPORT_matches, **kwargs):
+            if EXPORT_matches:
+                return Responses.GOOD.msg
+            for k in json:
+                if k in EXPORT_options:
+                    return Responses.BAD_VALUE_IN_ONEOF.msg.format(
+                        name,
+                        loc,
+                        EXPORT_options[k].last_message
+                    )
+            return Responses.MISSING_OPTIONAL.msg
+
         return Stage(
-            status=lambda EXPORT_matches, **kwargs:
-                Responses.GOOD.status if EXPORT_matches
-                else Responses.MISSING_OPTIONAL.status,
-            message=lambda EXPORT_matches, **kwargs:
-                "" if EXPORT_matches else Responses.MISSING_OPTIONAL.msg
+            status=status,
+            message=message
         )
 
     @staticmethod
@@ -138,7 +163,10 @@ class OneOf(_ConditionalKey):
         else:
             p.append(
                 f"{self.name}[exists]",
-                **{f"{self.name}[exists]": self._arg_exists_soft()}
+                **{
+                    f"{self.name}[exists]":
+                        self._arg_exists_soft(_loc, self.name)
+                }
             )
 
         # validate exclusiveness
