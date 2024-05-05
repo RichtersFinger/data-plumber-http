@@ -34,22 +34,6 @@ def test_property_empty_name():
         p.name = ""
 
 
-def test_property_fill_with_none():
-    """Test argument `fill_with_none` of `Property`."""
-
-    output = Object(
-        properties={Property("string", fill_with_none=False): String()}
-    ).assemble().run(json={"another-string": "test-string"})
-    assert output.data.value == {}
-    assert output.last_status == Responses.GOOD.status
-
-    output = Object(
-        properties={Property("string", fill_with_none=True): String()}
-    ).assemble().run(json={"another-string": "test-string"})
-    assert output.data.value == {"string": None}
-    assert output.last_status == Responses.GOOD.status
-
-
 def test_property_validation_only():
     """Test argument `validation_only` of `Property`."""
 

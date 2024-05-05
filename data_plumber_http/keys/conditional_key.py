@@ -48,43 +48,22 @@ class _ConditionalKey(DPKey):
 
     @staticmethod
     def _set_default(k):
-        if k.default is not None:
-            # default is set
-            return Stage(
-                requires={
-                    f"{k.name}[exists]": Responses.MISSING_OPTIONAL.status
-                },
-                primer=k.default
-                    if callable(k.default)
-                    else lambda **kwargs: k.default,
-                export=lambda primer, **kwargs:
-                    {
-                        "EXPORT_options": {
-                            "default": PipelineOutput(
-                                [], {}, Output(kwargs={k.name: primer})
-                            )
-                        },
-                        "EXPORT_matches": ["default"],
-                    },
-                status=lambda **kwargs: Responses.GOOD.status,
-                message=lambda **kwargs: Responses.GOOD.msg
-            )
-        # default to None or omit completely
         return Stage(
             requires={
                 f"{k.name}[exists]": Responses.MISSING_OPTIONAL.status
             },
+            primer=k.default
+                if callable(k.default)
+                else lambda **kwargs: k.default,
             export=lambda primer, **kwargs:
                 {
                     "EXPORT_options": {
                         "default": PipelineOutput(
-                            [], {}, Output(kwargs={k.name: None})
+                            [], {}, Output(kwargs={k.name: primer})
                         )
                     },
                     "EXPORT_matches": ["default"],
-                }
-                if k.fill_with_none
-                else {},
+                },
             status=lambda **kwargs: Responses.GOOD.status,
             message=lambda **kwargs: Responses.GOOD.msg
         )

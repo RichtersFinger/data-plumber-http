@@ -24,9 +24,6 @@ class OneOf(_ConditionalKey):
                (default `None`)
     required -- if `True`, this property is marked as required
                 (default `False`)
-    fill_with_none -- if `True`, fill fields of missing arguments
-                      without default with `None`
-                      (default `False`)
     validation_only -- skip exporting this property to the resulting
                        data and only perform validation
                        (default `False`)
@@ -38,14 +35,12 @@ class OneOf(_ConditionalKey):
         exclusive: bool = True,
         default: Optional[Callable[..., Any] | Any] = None,
         required: bool = False,
-        fill_with_none: bool = False,
         validation_only: bool = False
     ) -> None:
         self.exclusive = exclusive
         self.name = name
         self.default = default
         self.required = required
-        self.fill_with_none = fill_with_none
         self.validation_only = validation_only
 
     @staticmethod
@@ -155,10 +150,11 @@ class OneOf(_ConditionalKey):
             return p
 
         # set default
-        p.append(
-            f"{self.name}[default]",
-            **{f"{self.name}[default]": self._set_default(self)}
-        )
+        if self.default is not None:
+            p.append(
+                f"{self.name}[default]",
+                **{f"{self.name}[default]": self._set_default(self)}
+            )
 
         # output
         p.append(

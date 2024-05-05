@@ -183,31 +183,6 @@ def test_key_default_callable(properties, json):
 
 
 @pytest.mark.parametrize(
-    "json",
-    [
-        {"str": "string"},
-        {"no-str": "string"},
-    ],
-    ids=["arg_present", "arg_missing"]
-)
-def test_one_of_fill_with_none(json):
-    """Test argument `fill_with_none` for key `OneOf`."""
-    output = Object(
-        properties={
-            OneOf("str", fill_with_none=True): {
-                Property("str"): String()
-            }
-        }
-    ).assemble().run(json=json)
-
-    assert output.last_status == Responses.GOOD.status
-    if "str" in json:
-        assert output.data.value == json
-    else:
-        assert output.data.value["str"] is None
-
-
-@pytest.mark.parametrize(
     ("json", "status"),
     [
         ({"str": "string"}, Responses.GOOD.status),
@@ -259,31 +234,6 @@ def test_all_of_simple(json, status):
         assert output.data.value == json
     else:
         print(output.last_message)
-
-
-@pytest.mark.parametrize(
-    "json",
-    [
-        {"str": "string"},
-        {"no-str": "string"},
-    ],
-    ids=["arg_present", "arg_missing"]
-)
-def test_all_of_fill_with_none(json):
-    """Test argument `fill_with_none` for key `AllOf`."""
-    output = Object(
-        properties={
-            AllOf("str", fill_with_none=True): {
-                Property("str"): String()
-            }
-        }
-    ).assemble().run(json=json)
-
-    assert output.last_status == Responses.GOOD.status
-    if "str" in json:
-        assert output.data.value == json
-    else:
-        assert output.data.value["str"] is None
 
 
 @pytest.mark.parametrize(
