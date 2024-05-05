@@ -241,7 +241,12 @@ class Object(DPType):
                 **{
                     f"{__loc}[additionalProperties]":
                         self._process_additional_properties(
-                            [k.origin for k in self.properties.keys()],
+                            list(set().union(
+                                *[
+                                    k.get_origins(v)
+                                    for k, v in self.properties.items()
+                                ]
+                            )),
                             self._additional_properties_typespec,
                             _loc
                         )

@@ -444,3 +444,88 @@ def test_key_types_in_free_form_object(json, status):
         assert output.data.value == json
     else:
         print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        ({"str": True}, Responses.BAD_TYPE.status),
+        ({"str2": True}, Responses.BAD_TYPE.status),
+        ({"str3": True}, Responses.BAD_TYPE.status),
+        ({"str4": True}, Responses.BAD_TYPE.status),
+        ({"str5": "string"}, Responses.GOOD.status),
+    ]
+)
+def test_key_types_object_w_additional_properties(json, status):
+    """
+    Test occurrence of different key-types in `Object` with
+    `additional_properties`.
+    """
+    output = Object(
+        properties={
+            OneOf("str"): {
+                Property("str"): String(),
+            },
+            AllOf("str2"): {
+                Property("str2"): String(),
+            },
+            OneOf("str3|str4"): {
+                AllOf("str3"): {
+                    Property("str3"): String(),
+                },
+                AllOf("str4"): {
+                    Property("str4"): String(),
+                },
+            },
+        },
+        additional_properties=True
+    ).assemble().run(json=json)
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        print(output.data.value)
+    else:
+        print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        ({"str": True}, Responses.BAD_TYPE.status),
+        ({"str2": True}, Responses.BAD_TYPE.status),
+        ({"str3": True}, Responses.BAD_TYPE.status),
+        ({"str4": True}, Responses.BAD_TYPE.status),
+        ({"str5": "string"}, Responses.BAD_TYPE.status),
+        ({"bool": True}, Responses.GOOD.status),
+    ]
+)
+def test_key_types_object_w_additional_properties_dptype(json, status):
+    """
+    Test occurrence of different key-types in `Object` with
+    `additional_properties`.
+    """
+    output = Object(
+        properties={
+            OneOf("str"): {
+                Property("str"): String(),
+            },
+            AllOf("str2"): {
+                Property("str2"): String(),
+            },
+            OneOf("str3|str4"): {
+                AllOf("str3"): {
+                    Property("str3"): String(),
+                },
+                AllOf("str4"): {
+                    Property("str4"): String(),
+                },
+            },
+        },
+        additional_properties=Boolean()
+    ).assemble().run(json=json)
+
+    assert output.last_status == status
+    if status == Responses.GOOD.status:
+        assert output.data.value == json
+    else:
+        print(output.last_message)
