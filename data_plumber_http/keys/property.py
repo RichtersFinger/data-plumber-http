@@ -162,14 +162,7 @@ class Property(DPKey):
             message=lambda **kwargs: Responses.GOOD.msg
         )
 
-    def assemble(self, value: "DPType", loc: Optional[str]) -> Pipeline:
-        """
-        Assemble `Pipeline` that processes this `Property`.
-
-        Keyword arguments:
-        value -- `DPType` associated with this `Property`
-        loc -- position in original `json`
-        """
+    def assemble(self, value, loc):
         def finalizer(data, records, **kwargs):
             if records[-1].status == Responses.GOOD.status:
                 data.value = kwargs.get(f"EXPORT_{self.name}")

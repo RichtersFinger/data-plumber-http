@@ -1,13 +1,15 @@
+from typing import TypeAlias, Mapping
 import abc
 
-from data_plumber import Pipeline, Stage
+from data_plumber import Pipeline
 
-from data_plumber_http.settings import Responses
+
+Values: TypeAlias = "DPType" | Mapping["DPKey", "Values"]
 
 
 class DPKey(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def assemble(self, value, loc: str) -> Pipeline:
+    def assemble(self, value: Values, loc: str) -> Pipeline:
         """
         Returns `Pipeline` that processes the given `value` for this key.
         """

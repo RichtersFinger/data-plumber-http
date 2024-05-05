@@ -1,20 +1,16 @@
-from typing import TypeAlias, Mapping, Optional, Callable, Any
+from typing import Optional, Callable, Any
 
-from data_plumber import Pipearray, Pipeline, Stage
-from data_plumber.output import PipelineOutput
+from data_plumber import Pipeline, Stage
 
 from data_plumber_http.output import Output
 from data_plumber_http.settings import Responses
-from . import DPKey, Property
+from .conditional_key import _ConditionalKey
 
 
-Options: TypeAlias = Mapping[DPKey, "DPType | Options"]
-
-
-class OneOf(DPKey):
+class OneOf(_ConditionalKey):
     """
     A `OneOf` paired with a `Mapping` can be passed to an `Object`
-    constructor (`properties` argument) as a form of a conditional
+    constructor (`properties` argument) as a form of conditional
     request body validation. It is processed such that only one of
     the properties in the associated `Mapping` are included in the
     output.
@@ -53,54 +49,22 @@ class OneOf(DPKey):
         self.validation_only = validation_only
 
     @staticmethod
-    def _normalize(dpkey):
-        """
-        Returns normalized `DPKey` to be used inside `OneOf`.
-
-        This measure is required to get insightful status-response from
-        `Pipearray`.
-        """
-        # TODO: raise Error/warn if non-default settings for default
-        # etc. are used
-        if isinstance(dpkey, Property):
-            return Property(
-                origin=dpkey.origin, name=dpkey.name, required=True
-            )
-        return type(dpkey)(required=True)
-
-    @classmethod
-    def _run_options(cls, options: Options, loc: str) -> Stage:
-        pa = Pipearray(
-            **{
-                k.origin: cls._normalize(k).assemble(v, loc)
-                for k, v in options.items()
-            }
-        )
-        return Stage(
-            primer=lambda json, **kwargs: pa.run(json=json),
-            export=lambda primer, **kwargs:
-                {
-                    "EXPORT_options": primer,
-                    "EXPORT_matches": [
-                        k for k, v in primer.items()
-                        if v.last_status == Responses.GOOD.status
-                    ]
-                },
-            status=lambda **kwargs: Responses.GOOD.status,
-            message=lambda **kwargs: Responses.GOOD.msg
-        )
-
-    @staticmethod
     def _arg_exists_hard(loc, name):
         return Stage(
             status=lambda EXPORT_matches, **kwargs:
                 Responses.GOOD.status if EXPORT_matches
                 else Responses.MISSING_REQUIRED_ONEOF.status,
-            message=lambda EXPORT_matches, **kwargs:
+            message=lambda EXPORT_options, EXPORT_matches, **kwargs:
                 Responses.GOOD.msg if EXPORT_matches
                 else Responses.MISSING_REQUIRED_ONEOF.msg.format(
                     name,
-                    loc
+                    loc,
+                    ", ".join(
+                        map(
+                            lambda x: f"'{x}': \"{EXPORT_options[x].last_message or 'missing'}\"",
+                            EXPORT_options.keys()
+                        )
+                    )
                 )
         )
 
@@ -131,49 +95,6 @@ class OneOf(DPKey):
         )
 
     @staticmethod
-    def _set_default(k):
-        if k.default is not None:
-            # default is set
-            return Stage(
-                requires={
-                    f"{k.name}[exists]": Responses.MISSING_OPTIONAL.status
-                },
-                primer=k.default
-                    if callable(k.default)
-                    else lambda **kwargs: k.default,
-                export=lambda primer, **kwargs:
-                    {
-                        "EXPORT_options": {
-                            "default": PipelineOutput(
-                                [], {}, Output(kwargs={k.name: primer})
-                            )
-                        },
-                        "EXPORT_matches": ["default"],
-                    },
-                status=lambda **kwargs: Responses.GOOD.status,
-                message=lambda **kwargs: Responses.GOOD.msg
-            )
-        # default to None or omit completely
-        return Stage(
-            requires={
-                f"{k.name}[exists]": Responses.MISSING_OPTIONAL.status
-            },
-            export=lambda primer, **kwargs:
-                {
-                    "EXPORT_options": {
-                        "default": PipelineOutput(
-                            [], {}, Output(kwargs={k.name: None})
-                        )
-                    },
-                    "EXPORT_matches": ["default"],
-                }
-                if k.fill_with_none
-                else {},
-            status=lambda **kwargs: Responses.GOOD.status,
-            message=lambda **kwargs: Responses.GOOD.msg
-        )
-
-    @staticmethod
     def _output():
         return Stage(
             primer=lambda EXPORT_options, EXPORT_matches, **kwargs:
@@ -190,8 +111,11 @@ class OneOf(DPKey):
             message=lambda **kwargs: Responses.GOOD.msg
         )
 
-    def assemble(self, value: Options, loc: Optional[str]) -> Pipeline:
-        p = Pipeline()
+    def assemble(self, value, loc):
+        p = Pipeline(
+            exit_on_status=lambda status: status >= 400,
+            initialize_output=Output
+        )
         _loc = loc or "."
 
         # run options
