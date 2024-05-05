@@ -55,7 +55,7 @@ def flask_handler(handler: Pipeline, json: Callable[[], dict]):
             output = handler.run(
                 json=json()
             )
-            if output.last_status != Responses.GOOD.status:
+            if output.last_status != Responses().GOOD.status:
                 return Response(
                     response=output.last_message,
                     status=output.last_status,

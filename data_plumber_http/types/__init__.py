@@ -38,13 +38,13 @@ class DPType(metaclass=abc.ABCMeta):
                     # try to make instance of DPType
                     last = _type.make(json, loc)
                     # try next option if not successful
-                    if last[2] != Responses.GOOD.status:
+                    if last[2] != Responses().GOOD.status:
                         continue
                     # return if everything went well
                     return (
                         last[0],
-                        Responses.GOOD.msg,
-                        Responses.GOOD.status
+                        Responses().GOOD.msg,
+                        Responses().GOOD.status
                     )
                 # return info from latest attempt of making an instance
                 if last is not None:

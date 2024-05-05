@@ -37,27 +37,27 @@ class Url(DPType):
         if self._schemes is not None and url.scheme not in self._schemes:
             return (
                 None,
-                Responses.BAD_VALUE.msg.format(
+                Responses().BAD_VALUE.msg.format(
                     json,
                     loc,
                     "scheme to be "
                     + ("one of " if len(self._schemes) > 1 else "")
                     + ", ".join(f"'{v}'" for v in self._schemes)
                 ),
-                Responses.BAD_VALUE.status
+                Responses().BAD_VALUE.status
             )
         if self._require_netloc and url.netloc == "":
             return (
                 None,
-                Responses.BAD_VALUE.msg.format(
+                Responses().BAD_VALUE.msg.format(
                     json,
                     loc,
                     "non-empty netloc"
                 ),
-                Responses.BAD_VALUE.status
+                Responses().BAD_VALUE.status
             )
         return (
             url if self._return_parsed else json,
-            Responses.GOOD.msg,
-            Responses.GOOD.status
+            Responses().GOOD.msg,
+            Responses().GOOD.status
         )

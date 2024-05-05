@@ -30,25 +30,25 @@ class String(DPType):
                 and not re.fullmatch(self._pattern, json):
             return (
                 None,
-                Responses.BAD_VALUE.msg.format(
+                Responses().BAD_VALUE.msg.format(
                     json, loc, f"pattern '{self._pattern}'"
                 ),
-                Responses.BAD_VALUE.status
+                Responses().BAD_VALUE.status
             )
         # validate enum
         if self._enum is not None \
                 and json not in self._enum:
             return (
                 None,
-                Responses.BAD_VALUE.msg.format(
+                Responses().BAD_VALUE.msg.format(
                     json,
                     loc,
                     "one of " + ", ".join(f"'{v}'" for v in self._enum)
                 ),
-                Responses.BAD_VALUE.status
+                Responses().BAD_VALUE.status
             )
         return (
             self.TYPE(json),
-            Responses.GOOD.msg,
-            Responses.GOOD.status
+            Responses().GOOD.msg,
+            Responses().GOOD.status
         )

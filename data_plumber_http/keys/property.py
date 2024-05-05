@@ -63,11 +63,11 @@ class Property(DPKey):
         return Stage(
             primer=lambda json, **kwargs: k.origin in json,
             status=lambda primer, **kwargs:
-                Responses.GOOD.status if primer
-                else Responses.MISSING_REQUIRED.status,
+                Responses().GOOD.status if primer
+                else Responses().MISSING_REQUIRED.status,
             message=lambda primer, **kwargs:
-                Responses.GOOD.msg if primer
-                else Responses.MISSING_REQUIRED.msg.format(
+                Responses().GOOD.msg if primer
+                else Responses().MISSING_REQUIRED.msg.format(
                     loc,
                     k.origin
                 )
@@ -78,23 +78,23 @@ class Property(DPKey):
         return Stage(
             primer=lambda json, **kwargs: k.origin in json,
             status=lambda primer, **kwargs:
-                Responses.GOOD.status if primer
-                else Responses.MISSING_OPTIONAL.status,
+                Responses().GOOD.status if primer
+                else Responses().MISSING_OPTIONAL.status,
             message=lambda primer, **kwargs:
-                Responses.GOOD.msg if primer
-                else Responses.MISSING_OPTIONAL.msg
+                Responses().GOOD.msg if primer
+                else Responses().MISSING_OPTIONAL.msg
         )
 
     @staticmethod
     def _arg_has_type(k, v, loc):
         return Stage(
-            requires={k.name: Responses.GOOD.status},
+            requires={k.name: Responses().GOOD.status},
             primer=lambda json, **kwargs: isinstance(json[k.origin], v.TYPE),
             status=lambda primer, **kwargs:
-                Responses.GOOD.status if primer else Responses.BAD_TYPE.status,
+                Responses().GOOD.status if primer else Responses().BAD_TYPE.status,
             message=lambda primer, json, **kwargs:
-                Responses.GOOD.msg if primer
-                else Responses.BAD_TYPE.msg.format(
+                Responses().GOOD.msg if primer
+                else Responses().BAD_TYPE.msg.format(
                     k.origin,
                     loc,
                     v.__name__,
@@ -105,12 +105,12 @@ class Property(DPKey):
     @staticmethod
     def _make_instance(k, v, loc):
         return Stage(
-            requires={k.name: Responses.GOOD.status},
+            requires={k.name: Responses().GOOD.status},
             primer=lambda json, **kwargs:
                 v.make(json[k.origin], loc),
             export=lambda primer, **kwargs:
                 {f"EXPORT_{k.name}": primer[0]}
-                if primer[2] == Responses.GOOD.status
+                if primer[2] == Responses().GOOD.status
                 else {},
             status=lambda primer, **kwargs: primer[2],
             message=lambda primer, **kwargs: primer[1]
@@ -119,14 +119,14 @@ class Property(DPKey):
     @staticmethod
     def _set_default(k):
         return Stage(
-            requires={k.name: Responses.MISSING_OPTIONAL.status},
+            requires={k.name: Responses().MISSING_OPTIONAL.status},
             primer=k.default
                 if callable(k.default)
                 else lambda **kwargs: k.default,
             export=lambda primer, **kwargs:
                 {f"EXPORT_{k.name}": primer},
-            status=lambda **kwargs: Responses.GOOD.status,
-            message=lambda **kwargs: Responses.GOOD.msg
+            status=lambda **kwargs: Responses().GOOD.status,
+            message=lambda **kwargs: Responses().GOOD.msg
         )
 
     @staticmethod
@@ -145,13 +145,13 @@ class Property(DPKey):
                         else {}
                     )
                 ],
-            status=lambda **kwargs: Responses.GOOD.status,
-            message=lambda **kwargs: Responses.GOOD.msg
+            status=lambda **kwargs: Responses().GOOD.status,
+            message=lambda **kwargs: Responses().GOOD.msg
         )
 
     def assemble(self, value, loc):
         def finalizer(data, records, **kwargs):
-            if records[-1].status == Responses.GOOD.status:
+            if records[-1].status == Responses().GOOD.status:
                 data.value = kwargs.get(f"EXPORT_{self.name}")
         p = Pipeline(
             exit_on_status=lambda status: status >= 400,

@@ -40,7 +40,7 @@ def test_union_type_make(json, error):
         print(exc_info)
     else:
         assert (Boolean() | String()).make(json, ".") \
-            == (json, Responses.GOOD.msg, Responses.GOOD.status)
+            == (json, Responses().GOOD.msg, Responses().GOOD.status)
 
 
 @pytest.mark.parametrize(
@@ -61,15 +61,15 @@ def test_union_type_make_threefold(json, error):
         print(exc_info)
     else:
         assert (Boolean() | String() | Object(free_form=True)).make(json, ".") \
-            == (json, Responses.GOOD.msg, Responses.GOOD.status)
+            == (json, Responses().GOOD.msg, Responses().GOOD.status)
 
 
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str-or-bool": "string"}, Responses.GOOD.status),
-        ({"str-or-bool": True}, Responses.GOOD.status),
-        ({"str-or-bool": {}}, Responses.BAD_TYPE.status),
+        ({"str-or-bool": "string"}, Responses().GOOD.status),
+        ({"str-or-bool": True}, Responses().GOOD.status),
+        ({"str-or-bool": {}}, Responses().BAD_TYPE.status),
     ],
     ids=["string", "boolean", "object"]
 )
@@ -81,7 +81,7 @@ def test_union_in_object_validation(json, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value == json
     else:
         print(output.last_message)
@@ -90,9 +90,9 @@ def test_union_in_object_validation(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str-or-bool": "string"}, Responses.GOOD.status),
-        ({"str-or-bool": True}, Responses.GOOD.status),
-        ({"str-or-bool": {"field1": "value1"}}, Responses.GOOD.status),
+        ({"str-or-bool": "string"}, Responses().GOOD.status),
+        ({"str-or-bool": True}, Responses().GOOD.status),
+        ({"str-or-bool": {"field1": "value1"}}, Responses().GOOD.status),
     ],
     ids=["string", "boolean", "object"]
 )
@@ -115,7 +115,7 @@ def test_union_in_object_validation_threefold_associative(json, status, type_):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value == json
     else:
         print(output.last_message)

@@ -49,20 +49,20 @@ class AllOf(_ConditionalKey):
     def _arg_exists_hard(loc, name):
         def status(primer, json, EXPORT_options, **kwargs):
             if len(primer) == 0:
-                return Responses.GOOD.status
+                return Responses().GOOD.status
             for k in json:
                 if k in EXPORT_options \
-                        and EXPORT_options[k].last_status != Responses.GOOD.status:
+                        and EXPORT_options[k].last_status != Responses().GOOD.status:
                     return EXPORT_options[k].last_status
-            return Responses.MISSING_REQUIRED_ALLOF.status
+            return Responses().MISSING_REQUIRED_ALLOF.status
 
         return Stage(
             primer=lambda EXPORT_options, EXPORT_matches, **kwargs:
                 set(EXPORT_options.keys()).difference(set(EXPORT_matches)),
             status=status,
             message=lambda primer, EXPORT_options, **kwargs:
-                Responses.GOOD.msg if len(primer) == 0
-                else Responses.MISSING_REQUIRED_ALLOF.msg.format(
+                Responses().GOOD.msg if len(primer) == 0
+                else Responses().MISSING_REQUIRED_ALLOF.msg.format(
                     name,
                     loc,
                     ", ".join(
@@ -78,24 +78,24 @@ class AllOf(_ConditionalKey):
     def _arg_exists_soft(loc, name):
         def status(primer, json, EXPORT_options, **kwargs):
             if len(primer) == 0:
-                return Responses.GOOD.status
+                return Responses().GOOD.status
             for k in json:
                 if k in EXPORT_options \
-                        and EXPORT_options[k].last_status != Responses.GOOD.status:
+                        and EXPORT_options[k].last_status != Responses().GOOD.status:
                     return EXPORT_options[k].last_status
-            return Responses.MISSING_OPTIONAL.status
+            return Responses().MISSING_OPTIONAL.status
 
         def message(primer, json, EXPORT_options, **kwargs):
             if len(primer) == 0:
-                return Responses.GOOD.msg
+                return Responses().GOOD.msg
             for k in json:
                 if k in EXPORT_options:
-                    return Responses.BAD_VALUE_IN_ALLOF.msg.format(
+                    return Responses().BAD_VALUE_IN_ALLOF.msg.format(
                         name,
                         loc,
                         EXPORT_options[k].last_message
                     )
-            return Responses.MISSING_OPTIONAL.msg
+            return Responses().MISSING_OPTIONAL.msg
 
         return Stage(
             primer=lambda EXPORT_options, EXPORT_matches, **kwargs:
@@ -117,8 +117,8 @@ class AllOf(_ConditionalKey):
                         for v in EXPORT_matches
                     ]
                 ],
-            status=lambda **kwargs: Responses.GOOD.status,
-            message=lambda **kwargs: Responses.GOOD.msg
+            status=lambda **kwargs: Responses().GOOD.status,
+            message=lambda **kwargs: Responses().GOOD.msg
         )
 
     def assemble(self, value, loc):

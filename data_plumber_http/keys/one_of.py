@@ -53,18 +53,18 @@ class OneOf(_ConditionalKey):
     def _arg_exists_hard(loc, name):
         def status(json, EXPORT_options, EXPORT_matches, **kwargs):
             if EXPORT_matches:
-                return Responses.GOOD.status
+                return Responses().GOOD.status
             for k in json:
                 if k in EXPORT_options \
-                        and EXPORT_options[k].last_status != Responses.GOOD.status:
+                        and EXPORT_options[k].last_status != Responses().GOOD.status:
                     return EXPORT_options[k].last_status
-            return Responses.MISSING_REQUIRED_ONEOF.status
+            return Responses().MISSING_REQUIRED_ONEOF.status
 
         return Stage(
             status=status,
             message=lambda EXPORT_options, EXPORT_matches, **kwargs:
-                Responses.GOOD.msg if EXPORT_matches
-                else Responses.MISSING_REQUIRED_ONEOF.msg.format(
+                Responses().GOOD.msg if EXPORT_matches
+                else Responses().MISSING_REQUIRED_ONEOF.msg.format(
                     name,
                     loc,
                     ", ".join(
@@ -80,24 +80,24 @@ class OneOf(_ConditionalKey):
     def _arg_exists_soft(loc, name):
         def status(json, EXPORT_options, EXPORT_matches, **kwargs):
             if EXPORT_matches:
-                return Responses.GOOD.status
+                return Responses().GOOD.status
             for k in json:
                 if k in EXPORT_options \
-                        and EXPORT_options[k].last_status != Responses.GOOD.status:
+                        and EXPORT_options[k].last_status != Responses().GOOD.status:
                     return EXPORT_options[k].last_status
-            return Responses.MISSING_OPTIONAL.status
+            return Responses().MISSING_OPTIONAL.status
 
         def message(json, EXPORT_options, EXPORT_matches, **kwargs):
             if EXPORT_matches:
-                return Responses.GOOD.msg
+                return Responses().GOOD.msg
             for k in json:
                 if k in EXPORT_options:
-                    return Responses.BAD_VALUE_IN_ONEOF.msg.format(
+                    return Responses().BAD_VALUE_IN_ONEOF.msg.format(
                         name,
                         loc,
                         EXPORT_options[k].last_message
                     )
-            return Responses.MISSING_OPTIONAL.msg
+            return Responses().MISSING_OPTIONAL.msg
 
         return Stage(
             status=status,
@@ -107,13 +107,13 @@ class OneOf(_ConditionalKey):
     @staticmethod
     def _exclusive_match(loc, name):
         return Stage(
-            requires={f"{name}[exists]": Responses.GOOD.status},
+            requires={f"{name}[exists]": Responses().GOOD.status},
             status=lambda EXPORT_matches, **kwargs:
-                Responses.GOOD.status if len(EXPORT_matches) == 1
-                else Responses.MULTIPLE_ONEOF.status,
+                Responses().GOOD.status if len(EXPORT_matches) == 1
+                else Responses().MULTIPLE_ONEOF.status,
             message=lambda EXPORT_matches, **kwargs:
-                Responses.GOOD.msg if len(EXPORT_matches) == 1
-                else Responses.MULTIPLE_ONEOF.msg.format(
+                Responses().GOOD.msg if len(EXPORT_matches) == 1
+                else Responses().MULTIPLE_ONEOF.msg.format(
                     EXPORT_matches,
                     name,
                     loc
@@ -133,8 +133,8 @@ class OneOf(_ConditionalKey):
                     else None,
                     out.kwargs.update(primer)
                 ],
-            status=lambda **kwargs: Responses.GOOD.status,
-            message=lambda **kwargs: Responses.GOOD.msg
+            status=lambda **kwargs: Responses().GOOD.status,
+            message=lambda **kwargs: Responses().GOOD.msg
         )
 
     def assemble(self, value, loc):

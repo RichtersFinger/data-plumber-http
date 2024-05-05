@@ -12,6 +12,6 @@ class Boolean(DPType):
     def make(self, json, loc: str) -> tuple[Any, str, int]:
         return (
             self.TYPE(json),
-            Responses.GOOD.msg,
-            Responses.GOOD.status
+            Responses().GOOD.msg,
+            Responses().GOOD.status
         )

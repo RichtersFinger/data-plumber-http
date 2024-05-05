@@ -19,31 +19,31 @@ from data_plumber_http.settings import Responses
 @pytest.mark.parametrize(
     ("prop", "json", "status"),
     [
-        (String(), "string1", Responses.GOOD.status),
-        (String(), 0, Responses.BAD_TYPE.status),
-        (Boolean(), True, Responses.GOOD.status),
-        (Boolean(), 0, Responses.BAD_TYPE.status),
-        (Integer(), 0, Responses.GOOD.status),
-        (Integer(), 0.1, Responses.BAD_TYPE.status),
-        (Float(), 0.1, Responses.GOOD.status),
-        (Float(), True, Responses.BAD_TYPE.status),
-        (Null(), None, Responses.GOOD.status),
-        (Null(), True, Responses.BAD_TYPE.status),
-        (Number(), 0, Responses.GOOD.status),
-        (Number(), 0.1, Responses.GOOD.status),
-        (Number(), True, Responses.GOOD.status),
-        (Number(), "string1", Responses.BAD_TYPE.status),
-        (Array(), [0, "string1", {}], Responses.GOOD.status),
-        (Array(items=Integer()), [0, 1], Responses.GOOD.status),
-        (Array(items=Number()), [0, 1.5], Responses.GOOD.status),
-        (Array(items=String()), ["string1", "string2"], Responses.GOOD.status),
+        (String(), "string1", Responses().GOOD.status),
+        (String(), 0, Responses().BAD_TYPE.status),
+        (Boolean(), True, Responses().GOOD.status),
+        (Boolean(), 0, Responses().BAD_TYPE.status),
+        (Integer(), 0, Responses().GOOD.status),
+        (Integer(), 0.1, Responses().BAD_TYPE.status),
+        (Float(), 0.1, Responses().GOOD.status),
+        (Float(), True, Responses().BAD_TYPE.status),
+        (Null(), None, Responses().GOOD.status),
+        (Null(), True, Responses().BAD_TYPE.status),
+        (Number(), 0, Responses().GOOD.status),
+        (Number(), 0.1, Responses().GOOD.status),
+        (Number(), True, Responses().GOOD.status),
+        (Number(), "string1", Responses().BAD_TYPE.status),
+        (Array(), [0, "string1", {}], Responses().GOOD.status),
+        (Array(items=Integer()), [0, 1], Responses().GOOD.status),
+        (Array(items=Number()), [0, 1.5], Responses().GOOD.status),
+        (Array(items=String()), ["string1", "string2"], Responses().GOOD.status),
         (
             Array(items=Object(free_form=True)),
             [{"field1": 1, "field2": "string"}, {}],
-            Responses.GOOD.status
+            Responses().GOOD.status
         ),
-        (Array(items=String()), 0, Responses.BAD_TYPE.status),
-        (Array(items=String()), [0], Responses.BAD_TYPE.status),
+        (Array(items=String()), 0, Responses().BAD_TYPE.status),
+        (Array(items=String()), [0], Responses().BAD_TYPE.status),
     ]
 )
 def test_types(prop, json, status):
@@ -55,7 +55,7 @@ def test_types(prop, json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -66,26 +66,26 @@ def test_types(prop, json, status):
     [
         (
             {},
-            Responses.BAD_TYPE.status
+            Responses().BAD_TYPE.status
         ),
         (
             [
                 {"field1": 0.1, "field2": [True, "string"]},
             ],
-            Responses.BAD_TYPE.status
+            Responses().BAD_TYPE.status
         ),
         (
             [
                 {"field2": [0.1, True, "string"]},
             ],
-            Responses.BAD_TYPE.status
+            Responses().BAD_TYPE.status
         ),
         (
             [
                 {"field1": False, "field2": [True, "string"]},
                 {"field1": "False", "field2": ["True", "string"]},
             ],
-            Responses.GOOD.status
+            Responses().GOOD.status
         ),
     ]
 )
@@ -105,7 +105,7 @@ def test_types_complex(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -116,15 +116,15 @@ def test_types_complex(json, status):
     [
         (
             [True, False, True],
-            Responses.GOOD.status
+            Responses().GOOD.status
         ),
         (
             ["string1", "string2"],
-            Responses.GOOD.status
+            Responses().GOOD.status
         ),
         (
             ["string1", True],
-            Responses.BAD_TYPE.status
+            Responses().BAD_TYPE.status
         ),
     ]
 )
@@ -138,7 +138,7 @@ def test_types_complex_union(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -147,9 +147,9 @@ def test_types_complex_union(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ("string1", Responses.GOOD.status),
-        ("string", Responses.BAD_VALUE.status),
-        ("string11", Responses.BAD_VALUE.status),
+        ("string1", Responses().GOOD.status),
+        ("string", Responses().BAD_VALUE.status),
+        ("string11", Responses().BAD_VALUE.status),
     ]
 )
 def test_string_pattern(json, status):
@@ -161,7 +161,7 @@ def test_string_pattern(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -170,10 +170,10 @@ def test_string_pattern(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ("string1", Responses.GOOD.status),
-        ("string2", Responses.GOOD.status),
-        ("string", Responses.BAD_VALUE.status),
-        ("string11", Responses.BAD_VALUE.status),
+        ("string1", Responses().GOOD.status),
+        ("string2", Responses().GOOD.status),
+        ("string", Responses().BAD_VALUE.status),
+        ("string11", Responses().BAD_VALUE.status),
     ]
 )
 def test_string_enum(json, status):
@@ -185,7 +185,7 @@ def test_string_enum(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -194,9 +194,9 @@ def test_string_enum(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        (1, Responses.GOOD.status),
-        (2, Responses.GOOD.status),
-        (0, Responses.BAD_VALUE.status),
+        (1, Responses().GOOD.status),
+        (2, Responses().GOOD.status),
+        (0, Responses().BAD_VALUE.status),
     ]
 )
 def test_integer_values(json, status):
@@ -208,7 +208,7 @@ def test_integer_values(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -217,10 +217,10 @@ def test_integer_values(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        (1, Responses.GOOD.status),
-        (2, Responses.GOOD.status),
-        (3, Responses.GOOD.status),
-        (0, Responses.BAD_VALUE.status),
+        (1, Responses().GOOD.status),
+        (2, Responses().GOOD.status),
+        (3, Responses().GOOD.status),
+        (0, Responses().BAD_VALUE.status),
     ]
 )
 def test_integer_range(json, status):
@@ -232,7 +232,7 @@ def test_integer_range(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -241,9 +241,9 @@ def test_integer_range(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        (1.0, Responses.GOOD.status),
-        (3.5, Responses.GOOD.status),
-        (0.9, Responses.BAD_VALUE.status),
+        (1.0, Responses().GOOD.status),
+        (3.5, Responses().GOOD.status),
+        (0.9, Responses().BAD_VALUE.status),
     ]
 )
 def test_float_values(json, status):
@@ -255,7 +255,7 @@ def test_float_values(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -264,10 +264,10 @@ def test_float_values(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        (1.0, Responses.GOOD.status),
-        (2.0, Responses.GOOD.status),
-        (3.0, Responses.GOOD.status),
-        (0.0, Responses.BAD_VALUE.status),
+        (1.0, Responses().GOOD.status),
+        (2.0, Responses().GOOD.status),
+        (3.0, Responses().GOOD.status),
+        (0.0, Responses().BAD_VALUE.status),
     ]
 )
 def test_float_range(json, status):
@@ -279,7 +279,7 @@ def test_float_range(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -288,11 +288,11 @@ def test_float_range(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        (1, Responses.GOOD.status),
-        (2, Responses.GOOD.status),
-        (3.5, Responses.GOOD.status),
-        (0, Responses.BAD_VALUE.status),
-        (0.9, Responses.BAD_VALUE.status),
+        (1, Responses().GOOD.status),
+        (2, Responses().GOOD.status),
+        (3.5, Responses().GOOD.status),
+        (0, Responses().BAD_VALUE.status),
+        (0.9, Responses().BAD_VALUE.status),
     ]
 )
 def test_number_values(json, status):
@@ -304,7 +304,7 @@ def test_number_values(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -313,14 +313,14 @@ def test_number_values(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        (1, Responses.GOOD.status),
-        (1.0, Responses.GOOD.status),
-        (2, Responses.GOOD.status),
-        (2.0, Responses.GOOD.status),
-        (3, Responses.GOOD.status),
-        (3.0, Responses.GOOD.status),
-        (0, Responses.BAD_VALUE.status),
-        (0.0, Responses.BAD_VALUE.status),
+        (1, Responses().GOOD.status),
+        (1.0, Responses().GOOD.status),
+        (2, Responses().GOOD.status),
+        (2.0, Responses().GOOD.status),
+        (3, Responses().GOOD.status),
+        (3.0, Responses().GOOD.status),
+        (0, Responses().BAD_VALUE.status),
+        (0.0, Responses().BAD_VALUE.status),
     ]
 )
 def test_number_range(json, status):
@@ -332,7 +332,7 @@ def test_number_range(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -341,12 +341,12 @@ def test_number_range(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ("http://pypi.org/path", Responses.GOOD.status),
-        ("http://pypi.org", Responses.GOOD.status),
-        ("pypi.org", Responses.GOOD.status),  # interpreted as path
-        ("http", Responses.GOOD.status),
-        ("http://", Responses.GOOD.status),
-        ("http:/path", Responses.GOOD.status),
+        ("http://pypi.org/path", Responses().GOOD.status),
+        ("http://pypi.org", Responses().GOOD.status),
+        ("pypi.org", Responses().GOOD.status),  # interpreted as path
+        ("http", Responses().GOOD.status),
+        ("http://", Responses().GOOD.status),
+        ("http:/path", Responses().GOOD.status),
     ]
 )
 def test_url_basic(json, status):
@@ -358,7 +358,7 @@ def test_url_basic(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -367,10 +367,10 @@ def test_url_basic(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ("http://pypi.org", Responses.GOOD.status),
-        ("custom://pypi.org", Responses.GOOD.status),
-        ("sftp://pypi.org", Responses.BAD_VALUE.status),
-        ("pypi.org", Responses.BAD_VALUE.status),
+        ("http://pypi.org", Responses().GOOD.status),
+        ("custom://pypi.org", Responses().GOOD.status),
+        ("sftp://pypi.org", Responses().BAD_VALUE.status),
+        ("pypi.org", Responses().BAD_VALUE.status),
     ]
 )
 def test_url_schemes(json, status):
@@ -382,7 +382,7 @@ def test_url_schemes(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -391,13 +391,13 @@ def test_url_schemes(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ("http://pypi.org/path", Responses.GOOD.status),
-        ("http://pypi.org", Responses.GOOD.status),
-        ("pypi.org", Responses.BAD_VALUE.status),
-        ("://pypi.org", Responses.BAD_VALUE.status),
-        ("http://", Responses.BAD_VALUE.status),
-        ("http:/path", Responses.BAD_VALUE.status),
-        ("", Responses.BAD_VALUE.status),
+        ("http://pypi.org/path", Responses().GOOD.status),
+        ("http://pypi.org", Responses().GOOD.status),
+        ("pypi.org", Responses().BAD_VALUE.status),
+        ("://pypi.org", Responses().BAD_VALUE.status),
+        ("http://", Responses().BAD_VALUE.status),
+        ("http:/path", Responses().BAD_VALUE.status),
+        ("", Responses().BAD_VALUE.status),
     ]
 )
 def test_url_require_netloc(json, status):
@@ -409,7 +409,7 @@ def test_url_require_netloc(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json
     else:
         print(output.last_message)
@@ -423,7 +423,7 @@ def test_url_return_parsed():
         }
     ).assemble().run(json={"field": "http://pypi.org/path"})
 
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert hasattr(output.data.value["field"], "scheme")
     assert hasattr(output.data.value["field"], "netloc")
     assert hasattr(output.data.value["field"], "path")
@@ -432,27 +432,27 @@ def test_url_return_parsed():
 @pytest.mark.parametrize(
     ("kwargs", "json", "status"),
     [
-        ({}, __file__, Responses.GOOD.status),
-        ({"exists": True}, __file__, Responses.GOOD.status),
-        ({"is_file": True}, __file__, Responses.GOOD.status),
-        ({"is_dir": False}, __file__, Responses.GOOD.status),
-        ({"is_file": False}, __file__, Responses.CONFLICT.status),
-        ({"is_dir": True}, __file__, Responses.RESOURCE_NOT_FOUND.status),
+        ({}, __file__, Responses().GOOD.status),
+        ({"exists": True}, __file__, Responses().GOOD.status),
+        ({"is_file": True}, __file__, Responses().GOOD.status),
+        ({"is_dir": False}, __file__, Responses().GOOD.status),
+        ({"is_file": False}, __file__, Responses().CONFLICT.status),
+        ({"is_dir": True}, __file__, Responses().RESOURCE_NOT_FOUND.status),
         (
             {"relative_to": Path("tests")},
             str(Path(__file__).relative_to(Path(__file__).parents[1])),
-            Responses.GOOD.status
+            Responses().GOOD.status
         ),
         (
             {"relative_to": Path(__file__).parent},
             str(Path(__file__).parents[1] / "another_path"),
-            Responses.BAD_VALUE.status
+            Responses().BAD_VALUE.status
         ),
-        ({"relative_to": Path(".")}, __file__, Responses.BAD_VALUE.status),
+        ({"relative_to": Path(".")}, __file__, Responses().BAD_VALUE.status),
         (
             {"cwd": Path("tests"), "is_file": True},
             Path(__file__).name,
-            Responses.GOOD.status
+            Responses().GOOD.status
         ),
     ],
     ids=[
@@ -470,7 +470,7 @@ def test_file_system_object(kwargs, json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         if "relative_to" in kwargs:
             assert Path(json).relative_to(kwargs["relative_to"]) \
                 == output.data.value["field"]
@@ -485,13 +485,13 @@ def test_file_system_object(kwargs, json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ([1, "string1"], Responses.GOOD.status),
-        (True, Responses.GOOD.status),
-        (0.1, Responses.GOOD.status),
-        (1, Responses.GOOD.status),
-        (None, Responses.GOOD.status),
-        ({"inner-field": "value"}, Responses.GOOD.status),
-        ("string1", Responses.GOOD.status),
+        ([1, "string1"], Responses().GOOD.status),
+        (True, Responses().GOOD.status),
+        (0.1, Responses().GOOD.status),
+        (1, Responses().GOOD.status),
+        (None, Responses().GOOD.status),
+        ({"inner-field": "value"}, Responses().GOOD.status),
+        ("string1", Responses().GOOD.status),
     ]
 )
 def test_any(json, status):
@@ -503,5 +503,5 @@ def test_any(json, status):
     ).assemble().run(json={"field": json})
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value["field"] == json

@@ -27,7 +27,7 @@ class Object(DPType):
     additional_properties -- either boolean or field type (`DPType`)
                              boolean: if `True`, ignore any additional
                              fields; if `False`, respond with
-                             `Responses.UNKNOWN_PROPERTY` for fields
+                             `Responses().UNKNOWN_PROPERTY` for fields
                              that are not listed in `properties`
                              type: required type specification for
                              implicitly expected contents of this
@@ -35,7 +35,7 @@ class Object(DPType):
                              are added to the output
                              (default `None`; treated like `True`)
     accept_only -- if set, on execution a `json` is rejected with
-                   `Responses.UNKNOWN_PROPERTY` if it contains a key
+                   `Responses().UNKNOWN_PROPERTY` if it contains a key
                    that is not in `accept_only`
                    (default `None`)
     free_form -- if `True`, accept and use any content that has not been
@@ -110,11 +110,11 @@ class Object(DPType):
                 None
             ),
             status=lambda primer, **kwargs:
-                Responses.GOOD.status if not primer
-                else Responses.UNKNOWN_PROPERTY.status,
+                Responses().GOOD.status if not primer
+                else Responses().UNKNOWN_PROPERTY.status,
             message=lambda primer, **kwargs:
-                Responses.GOOD.msg if not primer
-                else Responses.UNKNOWN_PROPERTY.msg.format(
+                Responses().GOOD.msg if not primer
+                else Responses().UNKNOWN_PROPERTY.msg.format(
                     primer,
                     loc,
                     ", ".join(map(lambda x: f"'{x}'", accepted))
@@ -145,7 +145,7 @@ class Object(DPType):
                     additional := [k for k in json.keys() if k not in keys]
                 ) > 0
                 else None,  # return None if Object is empty > simply return with
-                            # Responses.GOOD
+                            # Responses().GOOD
             action=lambda out, primer, **kwargs:
                 [
                     out.update({"kwargs": {}})
@@ -153,12 +153,12 @@ class Object(DPType):
                     else None,
                     out.kwargs.update(primer.data.get("kwargs", {}))
                 ]
-                if primer and primer.last_status == Responses.GOOD.status
+                if primer and primer.last_status == Responses().GOOD.status
                 else None,
             status=lambda primer, **kwargs:
-                primer.last_status if primer else Responses.GOOD.status,
+                primer.last_status if primer else Responses().GOOD.status,
             message=lambda primer, **kwargs:
-                primer.last_message if primer else Responses.GOOD.msg,
+                primer.last_message if primer else Responses().GOOD.msg,
         )
 
     @staticmethod
@@ -181,8 +181,8 @@ class Object(DPType):
                     else None,
                     out.kwargs.update(primer)
                 ],
-            status=lambda **kwargs: Responses.GOOD.status,
-            message=lambda **kwargs: Responses.GOOD.msg,
+            status=lambda **kwargs: Responses().GOOD.status,
+            message=lambda **kwargs: Responses().GOOD.msg,
         )
 
     def make(self, json, loc: str) -> tuple[Any, str, int]:
@@ -192,7 +192,7 @@ class Object(DPType):
         Returns with a tuple of
         * object if valid or None,
         * problem description if invalid,
-        * status code (`Responses.GOOD` if valid)
+        * status code (`Responses().GOOD` if valid)
 
         Keyword arguments:
         json -- data to generate object from
@@ -203,11 +203,11 @@ class Object(DPType):
         return (
             (
                 output.data.value
-                if output.last_status == Responses.GOOD.status
+                if output.last_status == Responses().GOOD.status
                 else None
             ),
-            output.last_message or Responses.GOOD.msg,
-            output.last_status or Responses.GOOD.status
+            output.last_message or Responses().GOOD.msg,
+            output.last_status or Responses().GOOD.status
         )
 
     def assemble(self, _loc: Optional[str] = None) -> Pipeline:
@@ -216,11 +216,11 @@ class Object(DPType):
         """
         def finalizer(data, records, **kwargs):
             try:
-                if records[-1].status == Responses.GOOD.status:
+                if records[-1].status == Responses().GOOD.status:
                     data.value = self._model(**data.kwargs)
             except IndexError:  # empty Object
                 records.append(StageRecord(
-                    0, "finalizer", Responses.GOOD.msg, Responses.GOOD.status
+                    0, "finalizer", Responses().GOOD.msg, Responses().GOOD.status
                 ))
                 data.value = self._model()
         p = Pipeline(

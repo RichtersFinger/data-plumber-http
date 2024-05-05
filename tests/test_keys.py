@@ -16,10 +16,10 @@ from data_plumber_http.settings import Responses
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str": "string"}, Responses.GOOD.status),
-        ({"bool": True}, Responses.GOOD.status),
-        ({"bool": 0.1}, Responses.BAD_TYPE.status),
-        ({"str": "string", "bool": True}, Responses.MULTIPLE_ONEOF.status),
+        ({"str": "string"}, Responses().GOOD.status),
+        ({"bool": True}, Responses().GOOD.status),
+        ({"bool": 0.1}, Responses().BAD_TYPE.status),
+        ({"str": "string", "bool": True}, Responses().MULTIPLE_ONEOF.status),
     ]
 )
 def test_one_of_simple(json, status):
@@ -34,7 +34,7 @@ def test_one_of_simple(json, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value == json
     else:
         print(output.last_message)
@@ -43,8 +43,8 @@ def test_one_of_simple(json, status):
 @pytest.mark.parametrize(
     ("exclusive", "status"),
     [
-        (True, Responses.MULTIPLE_ONEOF.status),
-        (False, Responses.GOOD.status),
+        (True, Responses().MULTIPLE_ONEOF.status),
+        (False, Responses().GOOD.status),
     ],
     ids=["exclusive", "non-exclusive"]
 )
@@ -61,7 +61,7 @@ def test_one_of_exclusive(exclusive, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert len(output.data.value) == 1
         key = list(output.data.value.keys())[0]
         assert key in json
@@ -100,9 +100,9 @@ def test_key_required(properties, required, json):
     ).assemble().run(json=json)
 
     if not required or "str" in json:
-        assert output.last_status == Responses.GOOD.status
+        assert output.last_status == Responses().GOOD.status
     else:
-        assert output.last_status != Responses.GOOD.status
+        assert output.last_status != Responses().GOOD.status
     if "str" in json:
         assert output.data.value == json
 
@@ -130,7 +130,7 @@ def test_key_default(properties, json):
         properties=properties
     ).assemble().run(json=json)
 
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     if "str" in json:
         assert output.data.value == json
     else:
@@ -175,7 +175,7 @@ def test_key_default_callable(properties, json):
         properties=properties
     ).assemble().run(json=json, default_string="more-text")
 
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     if "str" in json:
         assert output.data.value == json
     else:
@@ -185,10 +185,10 @@ def test_key_default_callable(properties, json):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str": "string"}, Responses.GOOD.status),
-        ({"bool": True}, Responses.GOOD.status),
-        ({"bool": 0.1}, Responses.BAD_TYPE.status),
-        ({"str": "string", "bool": True}, Responses.MULTIPLE_ONEOF.status),
+        ({"str": "string"}, Responses().GOOD.status),
+        ({"bool": True}, Responses().GOOD.status),
+        ({"bool": 0.1}, Responses().BAD_TYPE.status),
+        ({"str": "string", "bool": True}, Responses().MULTIPLE_ONEOF.status),
     ]
 )
 def test_one_of_validation_only(json, status):
@@ -203,7 +203,7 @@ def test_one_of_validation_only(json, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value == {}
     else:
         print(output.last_message)
@@ -212,10 +212,10 @@ def test_one_of_validation_only(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str": "string"}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"bool": True}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"str": "string", "bool": 0.1}, Responses.BAD_TYPE.status),
-        ({"str": "string", "bool": True}, Responses.GOOD.status),
+        ({"str": "string"}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"bool": True}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"str": "string", "bool": 0.1}, Responses().BAD_TYPE.status),
+        ({"str": "string", "bool": True}, Responses().GOOD.status),
     ]
 )
 def test_all_of_simple(json, status):
@@ -230,7 +230,7 @@ def test_all_of_simple(json, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value == json
     else:
         print(output.last_message)
@@ -239,10 +239,10 @@ def test_all_of_simple(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str": "string"}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"bool": True}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"str": "string", "bool": True}, Responses.GOOD.status),
-        ({"str": "string", "bool": 0.1}, Responses.BAD_TYPE.status),
+        ({"str": "string"}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"bool": True}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"str": "string", "bool": True}, Responses().GOOD.status),
+        ({"str": "string", "bool": 0.1}, Responses().BAD_TYPE.status),
     ]
 )
 def test_all_of_validation_only(json, status):
@@ -257,7 +257,7 @@ def test_all_of_validation_only(json, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value == {}
     else:
         print(output.last_message)
@@ -266,10 +266,10 @@ def test_all_of_validation_only(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str": "string"}, Responses.MISSING_REQUIRED_ONEOF.status),
-        ({"bool2": True}, Responses.GOOD.status),
-        ({"str": "string", "bool": True}, Responses.GOOD.status),
-        ({"str": "string", "bool": True, "bool2": True}, Responses.MULTIPLE_ONEOF.status),
+        ({"str": "string"}, Responses().MISSING_REQUIRED_ONEOF.status),
+        ({"bool2": True}, Responses().GOOD.status),
+        ({"str": "string", "bool": True}, Responses().GOOD.status),
+        ({"str": "string", "bool": True, "bool2": True}, Responses().MULTIPLE_ONEOF.status),
     ]
 )
 def test_one_of_all_of_simple(json, status):
@@ -287,7 +287,7 @@ def test_one_of_all_of_simple(json, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value == json
     else:
         print(output.last_message)
@@ -296,13 +296,13 @@ def test_one_of_all_of_simple(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str": "string"}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"bool": True}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"bool2": True}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"str": "string", "bool": True}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"str": "string", "bool2": True}, Responses.GOOD.status),
-        ({"bool": True, "bool2": True}, Responses.GOOD.status),
-        ({"str": "string", "bool": True, "bool2": True}, Responses.MULTIPLE_ONEOF.status),
+        ({"str": "string"}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"bool": True}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"bool2": True}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"str": "string", "bool": True}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"str": "string", "bool2": True}, Responses().GOOD.status),
+        ({"bool": True, "bool2": True}, Responses().GOOD.status),
+        ({"str": "string", "bool": True, "bool2": True}, Responses().MULTIPLE_ONEOF.status),
     ]
 )
 def test_all_of_one_of_simple(json, status):
@@ -320,7 +320,7 @@ def test_all_of_one_of_simple(json, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value == json
     else:
         print(output.last_message)
@@ -329,12 +329,12 @@ def test_all_of_one_of_simple(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str2": "string2", "str3": "string3", "bool": True}, Responses.GOOD.status),
-        ({"str": "string", "bool": True}, Responses.GOOD.status),
-        ({"str": "string", "str2": "string2", "str3": "string3", "bool": True}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"str2": "string2", "str3": "string3", "str4": "string4", "bool": True}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"str2": "string2", "str4": "string4"}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"str2": "string2", "str4": False, "bool": True}, Responses.MISSING_REQUIRED_ALLOF.status),
+        ({"str2": "string2", "str3": "string3", "bool": True}, Responses().GOOD.status),
+        ({"str": "string", "bool": True}, Responses().GOOD.status),
+        ({"str": "string", "str2": "string2", "str3": "string3", "bool": True}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"str2": "string2", "str3": "string3", "str4": "string4", "bool": True}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"str2": "string2", "str4": "string4"}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"str2": "string2", "str4": False, "bool": True}, Responses().MISSING_REQUIRED_ALLOF.status),
     ]
 )
 def test_all_of_one_of_complex(json, status):
@@ -358,7 +358,7 @@ def test_all_of_one_of_complex(json, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value == json
     else:
         print(output.last_message)
@@ -367,12 +367,12 @@ def test_all_of_one_of_complex(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str": "string", "bool": True}, Responses.GOOD.status),
-        ({"obj": {}, "bool": True}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"obj": {"str2": "string2"}, "bool": True}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"obj": {"str2": "string2", "str3": "string3", "str4": "string4"}, "bool": True}, Responses.MISSING_REQUIRED_ALLOF.status),
-        ({"obj": {"str2": "string2", "str3": "string3"}, "bool": True}, Responses.GOOD.status),
-        ({"obj": {"str2": "string2", "str4": "string4"}, "bool": True}, Responses.GOOD.status),
+        ({"str": "string", "bool": True}, Responses().GOOD.status),
+        ({"obj": {}, "bool": True}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"obj": {"str2": "string2"}, "bool": True}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"obj": {"str2": "string2", "str3": "string3", "str4": "string4"}, "bool": True}, Responses().MISSING_REQUIRED_ALLOF.status),
+        ({"obj": {"str2": "string2", "str3": "string3"}, "bool": True}, Responses().GOOD.status),
+        ({"obj": {"str2": "string2", "str4": "string4"}, "bool": True}, Responses().GOOD.status),
     ]
 )
 def test_all_of_one_of_complex_objects(json, status):
@@ -401,7 +401,7 @@ def test_all_of_one_of_complex_objects(json, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value == json
     else:
         print(output.last_message)
@@ -410,11 +410,11 @@ def test_all_of_one_of_complex_objects(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str": True}, Responses.BAD_TYPE.status),
-        ({"str2": True}, Responses.BAD_TYPE.status),
-        ({"str3": True}, Responses.BAD_TYPE.status),
-        ({"str4": True}, Responses.BAD_TYPE.status),
-        ({"str5": "string"}, Responses.GOOD.status),
+        ({"str": True}, Responses().BAD_TYPE.status),
+        ({"str2": True}, Responses().BAD_TYPE.status),
+        ({"str3": True}, Responses().BAD_TYPE.status),
+        ({"str4": True}, Responses().BAD_TYPE.status),
+        ({"str5": "string"}, Responses().GOOD.status),
     ]
 )
 def test_key_types_in_free_form_object(json, status):
@@ -440,7 +440,7 @@ def test_key_types_in_free_form_object(json, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value == json
     else:
         print(output.last_message)
@@ -449,11 +449,11 @@ def test_key_types_in_free_form_object(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str": True}, Responses.BAD_TYPE.status),
-        ({"str2": True}, Responses.BAD_TYPE.status),
-        ({"str3": True}, Responses.BAD_TYPE.status),
-        ({"str4": True}, Responses.BAD_TYPE.status),
-        ({"str5": "string"}, Responses.GOOD.status),
+        ({"str": True}, Responses().BAD_TYPE.status),
+        ({"str2": True}, Responses().BAD_TYPE.status),
+        ({"str3": True}, Responses().BAD_TYPE.status),
+        ({"str4": True}, Responses().BAD_TYPE.status),
+        ({"str5": "string"}, Responses().GOOD.status),
     ]
 )
 def test_key_types_object_w_additional_properties(json, status):
@@ -482,7 +482,7 @@ def test_key_types_object_w_additional_properties(json, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         print(output.data.value)
     else:
         print(output.last_message)
@@ -491,12 +491,12 @@ def test_key_types_object_w_additional_properties(json, status):
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"str": True}, Responses.BAD_TYPE.status),
-        ({"str2": True}, Responses.BAD_TYPE.status),
-        ({"str3": True}, Responses.BAD_TYPE.status),
-        ({"str4": True}, Responses.BAD_TYPE.status),
-        ({"str5": "string"}, Responses.BAD_TYPE.status),
-        ({"bool": True}, Responses.GOOD.status),
+        ({"str": True}, Responses().BAD_TYPE.status),
+        ({"str2": True}, Responses().BAD_TYPE.status),
+        ({"str3": True}, Responses().BAD_TYPE.status),
+        ({"str4": True}, Responses().BAD_TYPE.status),
+        ({"str5": "string"}, Responses().BAD_TYPE.status),
+        ({"bool": True}, Responses().GOOD.status),
     ]
 )
 def test_key_types_object_w_additional_properties_dptype(json, status):
@@ -525,7 +525,7 @@ def test_key_types_object_w_additional_properties_dptype(json, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value == json
     else:
         print(output.last_message)

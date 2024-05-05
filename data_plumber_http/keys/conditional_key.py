@@ -39,18 +39,18 @@ class _ConditionalKey(DPKey):
                     "EXPORT_options": primer,
                     "EXPORT_matches": [
                         k for k, v in primer.items()
-                        if v.last_status == Responses.GOOD.status
+                        if v.last_status == Responses().GOOD.status
                     ]
                 },
-            status=lambda **kwargs: Responses.GOOD.status,
-            message=lambda **kwargs: Responses.GOOD.msg
+            status=lambda **kwargs: Responses().GOOD.status,
+            message=lambda **kwargs: Responses().GOOD.msg
         )
 
     @staticmethod
     def _set_default(k):
         return Stage(
             requires={
-                f"{k.name}[exists]": Responses.MISSING_OPTIONAL.status
+                f"{k.name}[exists]": Responses().MISSING_OPTIONAL.status
             },
             primer=k.default
                 if callable(k.default)
@@ -64,6 +64,6 @@ class _ConditionalKey(DPKey):
                     },
                     "EXPORT_matches": ["default"],
                 },
-            status=lambda **kwargs: Responses.GOOD.status,
-            message=lambda **kwargs: Responses.GOOD.msg
+            status=lambda **kwargs: Responses().GOOD.status,
+            message=lambda **kwargs: Responses().GOOD.msg
         )

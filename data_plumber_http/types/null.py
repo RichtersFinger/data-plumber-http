@@ -13,6 +13,6 @@ class Null(DPType):
     def make(self, json, loc: str) -> tuple[Any, str, int]:
         return (
             None,
-            Responses.GOOD.msg,
-            Responses.GOOD.status
+            Responses().GOOD.msg,
+            Responses().GOOD.status
         )

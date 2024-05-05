@@ -31,7 +31,7 @@ def test_object_additional_properties():
     output = Object(
         additional_properties=String(),
     ).assemble().run(json=json)
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert output.data.value == json
 
 
@@ -47,7 +47,7 @@ def test_object_properties_and_additional_properties():
         },
         additional_properties=String(),
     ).assemble().run(json=json)
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert output.data.value == json
 
 
@@ -58,7 +58,7 @@ def test_object_additional_properties_none_given():
     output = Object(
         additional_properties=String(),
     ).assemble().run(json=json)
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert output.data.value == json
 
 
@@ -72,7 +72,7 @@ def test_object_property_and_additional_properties_none_given():
         },
         additional_properties=String(),
     ).assemble().run(json=json)
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert output.data.value == json
 
 
@@ -84,17 +84,17 @@ def test_object_additional_properties_bad_types():
         additional_properties=Boolean(),
     ).assemble().run(json=json)
     print(output.last_message)
-    assert output.last_status == Responses.BAD_TYPE.status
+    assert output.last_status == Responses().BAD_TYPE.status
 
 
 @pytest.mark.parametrize(
     ("pipeline", "status"),
     [
-        (Object().assemble(), Responses.GOOD.status),
-        (Object(additional_properties=True).assemble(), Responses.GOOD.status),
+        (Object().assemble(), Responses().GOOD.status),
+        (Object(additional_properties=True).assemble(), Responses().GOOD.status),
         (
             Object(additional_properties=False).assemble(),
-            Responses.UNKNOWN_PROPERTY.status
+            Responses().UNKNOWN_PROPERTY.status
         ),
     ],
     ids=["default", "True", "False"]
@@ -105,7 +105,7 @@ def test_object_additional_properties_boolean_minimal(pipeline, status):
     """
 
     output = pipeline.run(json={"string": "string1"})
-    if output.last_status != Responses.GOOD.status:
+    if output.last_status != Responses().GOOD.status:
         print(output.last_message)
     assert output.last_status == status
 
@@ -137,9 +137,9 @@ def test_object_additional_properties_boolean_non_empty(
         additional_properties=additional_properties
     ).assemble().run(json=json)
 
-    if output.last_status != Responses.GOOD.status:
+    if output.last_status != Responses().GOOD.status:
         print(output.last_message)
     if "string" in json or additional_properties:
-        assert output.last_status == Responses.GOOD.status
+        assert output.last_status == Responses().GOOD.status
     else:
-        assert output.last_status == Responses.UNKNOWN_PROPERTY.status
+        assert output.last_status == Responses().UNKNOWN_PROPERTY.status

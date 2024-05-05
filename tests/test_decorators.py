@@ -29,8 +29,8 @@ def _base_app():
 @pytest.mark.parametrize(
     ("arg", "status"),
     [
-        ("123", Responses.GOOD.status),
-        ("abc", Responses.BAD_VALUE.status)
+        ("123", Responses().GOOD.status),
+        ("abc", Responses().BAD_VALUE.status)
     ]
 )
 def test_flask_args_minimal(base_app, arg, status):
@@ -48,7 +48,7 @@ def test_flask_args_minimal(base_app, arg, status):
     def main(
         arg: Optional[str] = None
     ):
-        return Response(f"Got '{arg}'.", status=Responses.GOOD.status)
+        return Response(f"Got '{arg}'.", status=Responses().GOOD.status)
 
     client = base_app.test_client()
 
@@ -62,8 +62,8 @@ def test_flask_args_minimal(base_app, arg, status):
 @pytest.mark.parametrize(
     ("string", "status"),
     [
-        ("123", Responses.GOOD.status),
-        ("abc", Responses.BAD_VALUE.status)
+        ("123", Responses().GOOD.status),
+        ("abc", Responses().BAD_VALUE.status)
     ]
 )
 def test_flask_json_minimal(base_app, string, status):
@@ -81,7 +81,7 @@ def test_flask_json_minimal(base_app, string, status):
     def main(
         string: Optional[str] = None
     ):
-        return Response(f"Got '{string}'.", status=Responses.GOOD.status)
+        return Response(f"Got '{string}'.", status=Responses().GOOD.status)
 
     client = base_app.test_client()
 
@@ -109,7 +109,7 @@ def test_flask_json_multiple(base_app):
         string: Optional[str] = None,
         integer: Optional[int] = None,
     ):
-        return Response("OK", status=Responses.GOOD.status)
+        return Response("OK", status=Responses().GOOD.status)
 
     client = base_app.test_client()
 
@@ -118,7 +118,7 @@ def test_flask_json_multiple(base_app):
         json={"string": "string1", "integer": 0}
     )
 
-    assert response.status_code == Responses.GOOD.status
+    assert response.status_code == Responses().GOOD.status
 
 
 @pytest.mark.parametrize(
@@ -141,7 +141,7 @@ def test_flask_json_missing_required(base_app, required):
     def main(
         string: Optional[str] = None
     ):
-        return Response("OK", status=Responses.GOOD.status)
+        return Response("OK", status=Responses().GOOD.status)
 
     client = base_app.test_client()
 
@@ -151,7 +151,7 @@ def test_flask_json_missing_required(base_app, required):
     )
 
     if not required:
-        assert response.status_code == Responses.GOOD.status
+        assert response.status_code == Responses().GOOD.status
     else:
-        assert response.status_code == Responses.MISSING_REQUIRED.status
+        assert response.status_code == Responses().MISSING_REQUIRED.status
         print(response.data.decode())

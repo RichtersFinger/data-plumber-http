@@ -60,12 +60,12 @@ class FileSystemObject(DPType):
             except ValueError as exc_info:
                 return (
                     None,
-                    Responses.BAD_VALUE.msg.format(
+                    Responses().BAD_VALUE.msg.format(
                         json,
                         loc,
                         f"path relative to '{self._relative_to}' ({exc_info})"
                     ),
-                    Responses.BAD_VALUE.status
+                    Responses().BAD_VALUE.status
                 )
         if self._cwd is not None:
             path = self._cwd / path
@@ -76,16 +76,16 @@ class FileSystemObject(DPType):
                 if req:
                     return (
                         None,
-                        Responses.RESOURCE_NOT_FOUND.msg.format(json, loc),
-                        Responses.RESOURCE_NOT_FOUND.status
+                        Responses().RESOURCE_NOT_FOUND.msg.format(json, loc),
+                        Responses().RESOURCE_NOT_FOUND.status
                     )
                 return (
                     None,
-                    Responses.CONFLICT.msg.format(json, loc),
-                    Responses.CONFLICT.status
+                    Responses().CONFLICT.msg.format(json, loc),
+                    Responses().CONFLICT.status
                 )
         return (
             path,
-            Responses.GOOD.msg,
-            Responses.GOOD.status
+            Responses().GOOD.msg,
+            Responses().GOOD.status
         )
