@@ -36,9 +36,13 @@ class Responses:
     )
     MISSING_REQUIRED_ONEOF = ProblemInfo(
         400,
-        "No match for required OneOf '{}' in '{}'."
+        "No match for required OneOf '{}' in '{}' ({})."
     )
     MULTIPLE_ONEOF = ProblemInfo(
         400,
         "Multiple matches ('{}') for OneOf '{}' in '{}'."
+    )
+    MISSING_REQUIRED_ALLOF = ProblemInfo(
+        400,
+        "Missing parts for required AllOf '{}' in '{}' ({})."
     )
