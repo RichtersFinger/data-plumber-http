@@ -302,7 +302,7 @@ def test_one_of_all_of_simple(json, status):
         ({"str": "string", "bool": True}, Responses().MISSING_REQUIRED_ALLOF.status),
         ({"str": "string", "bool2": True}, Responses().GOOD.status),
         ({"bool": True, "bool2": True}, Responses().GOOD.status),
-        ({"str": "string", "bool": True, "bool2": True}, Responses().MULTIPLE_ONEOF.status),
+        ({"str": "string", "bool": True, "bool2": True}, Responses().MISSING_REQUIRED_ALLOF.status),
     ]
 )
 def test_all_of_one_of_simple(json, status):
