@@ -99,7 +99,7 @@ class Responses:
                 2  # gets overridden by child-status
             )
             cls._instance.warn_on_change = False
-            cls._instance._INTERNAL_RESPONSES = list(
+            cls._instance.INTERNAL_RESPONSES = list(
                 k for k, v in cls.__dict__.items()
                 if isinstance(v, ProblemInfo)
             )
@@ -109,7 +109,7 @@ class Responses:
     def _warn(self, name: str) -> None:
         if self.warn_on_change and name in self.INTERNAL_RESPONSES:
             warnings.warn(
-                f"Changing internally defined response '{name}' can break"
+                f"Changing internally defined response '{name}' can break "
                 + "functionality. (Set 'Responses().warn_on_change' to 'False'"
                 + " to remove this message.)"
             )
