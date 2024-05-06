@@ -115,9 +115,10 @@ class Object(DPType):
             message=lambda primer, **kwargs:
                 Responses().GOOD.msg if not primer
                 else Responses().UNKNOWN_PROPERTY.msg.format(
-                    primer,
-                    loc,
-                    ", ".join(map(lambda x: f"'{x}'", accepted))
+                    origin=primer,
+                    loc=loc,
+                    accepted="accepted: " + ", ".join(map(lambda x: f"'{x}'", accepted))
+                        if len(accepted) > 0 else "none accepted"
                 )
         )
 

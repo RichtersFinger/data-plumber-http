@@ -38,9 +38,9 @@ class Url(DPType):
             return (
                 None,
                 Responses().BAD_VALUE.msg.format(
-                    json,
-                    loc,
-                    "scheme to be "
+                    origin=json,
+                    loc=loc,
+                    expected="scheme to be "
                     + ("one of " if len(self._schemes) > 1 else "")
                     + ", ".join(f"'{v}'" for v in self._schemes)
                 ),
@@ -50,9 +50,9 @@ class Url(DPType):
             return (
                 None,
                 Responses().BAD_VALUE.msg.format(
-                    json,
-                    loc,
-                    "non-empty netloc"
+                    origin=json,
+                    loc=loc,
+                    expected="non-empty netloc"
                 ),
                 Responses().BAD_VALUE.status
             )

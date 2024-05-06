@@ -45,58 +45,58 @@ class Responses:
             )
             cls._instance.update(
                 "UNKNOWN_PROPERTY",
-                "Argument '{}' in '{}' not allowed (accepted: {}).",
+                "Argument '{origin}' in '{loc}' not allowed ({accepted}).",
                 400
             )
             cls._instance.update(
                 "MISSING_REQUIRED",
-                "Object '{}' missing required property '{}'.",
+                "Object '{loc}' missing required property '{origin}'.",
                 400
             )
             cls._instance.update(
                 "BAD_TYPE",
-                "Argument '{}' in '{}' has bad type. Expected '{}' but found '{}'.",
+                "Argument '{origin}' in '{loc}' has bad type. Expected '{xp_type}' but found '{fnd_type}'.",
                 422
             )
             cls._instance.update(
                 "BAD_VALUE",
-                "Value '{}' in '{}' not allowed (expected {}).",
+                "Value '{origin}' in '{loc}' not allowed (expected {expected}).",
                 422
             )
             cls._instance.update(
                 "RESOURCE_NOT_FOUND",
-                "Could not find requested resource '{}' given in '{}'.",
+                "Could not find requested resource '{res}' given in '{loc}'.",
                 404
             )
             cls._instance.update(
                 "CONFLICT",
-                "Resource '{}' given in '{}' conflicts with existing resource.",
+                "Resource '{res}' given in '{loc}' conflicts with existing resource.",
                 409
             )
             cls._instance.update(
                 "MISSING_REQUIRED_ONEOF",
-                "No match for required OneOf '{}' in '{}' ({}).",
+                "Expected at least one match for one of {options} in '{loc}' ({details}).",
                 400
             )
             cls._instance.update(
                 "BAD_VALUE_IN_ONEOF",
-                "Bad value encountered in OneOf '{}' in '{}' ({}).",
-                2  # gets overridden by child-status
+                "{child}",  # filled with child's message
+                2  # gets overridden by child's status
             )
             cls._instance.update(
                 "MULTIPLE_ONEOF",
-                "Multiple matches ('{}') for OneOf '{}' in '{}'.",
+                "Expected exclusive match among {property} {options} in '{loc}' (got matches {matches}).",
                 400
             )
             cls._instance.update(
                 "MISSING_REQUIRED_ALLOF",
-                "Missing parts for required AllOf '{}' in '{}' ({}).",
+                "Missing or invalid required {property} {missing} in '{loc}' ({details}).",
                 400
             )
             cls._instance.update(
                 "BAD_VALUE_IN_ALLOF",
-                "Bad value encountered in AllOf '{}' in '{}' ({}).",
-                2  # gets overridden by child-status
+                "{child}",  # filled with child's message
+                2  # gets overridden by child's status
             )
             cls._instance.warn_on_change = False
             cls._instance.INTERNAL_RESPONSES = list(

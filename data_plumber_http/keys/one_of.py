@@ -50,7 +50,7 @@ class OneOf(_ConditionalKey):
         return origins
 
     @staticmethod
-    def _arg_exists_hard(loc, name):
+    def _arg_exists_hard(loc, origins):
         def status(json, EXPORT_options, EXPORT_matches, **kwargs):
             if EXPORT_matches:
                 return Responses().GOOD.status
@@ -65,9 +65,9 @@ class OneOf(_ConditionalKey):
             message=lambda EXPORT_options, EXPORT_matches, **kwargs:
                 Responses().GOOD.msg if EXPORT_matches
                 else Responses().MISSING_REQUIRED_ONEOF.msg.format(
-                    name,
-                    loc,
-                    ", ".join(
+                    options=", ".join(map(lambda x: f"'{x}'", origins)),
+                    loc=loc,
+                    details=", ".join(
                         map(
                             lambda x: f"'{x}': \"{EXPORT_options[x].last_message or '<missing>'}\"",
                             EXPORT_options.keys()
@@ -77,7 +77,7 @@ class OneOf(_ConditionalKey):
         )
 
     @staticmethod
-    def _arg_exists_soft(loc, name):
+    def _arg_exists_soft():
         def status(json, EXPORT_options, EXPORT_matches, **kwargs):
             if EXPORT_matches:
                 return Responses().GOOD.status
@@ -93,9 +93,7 @@ class OneOf(_ConditionalKey):
             for k in json:
                 if k in EXPORT_options:
                     return Responses().BAD_VALUE_IN_ONEOF.msg.format(
-                        name,
-                        loc,
-                        EXPORT_options[k].last_message
+                        child=EXPORT_options[k].last_message
                     )
             return Responses().MISSING_OPTIONAL.msg
 
@@ -105,7 +103,7 @@ class OneOf(_ConditionalKey):
         )
 
     @staticmethod
-    def _exclusive_match(loc, name):
+    def _exclusive_match(name, loc, origins):
         return Stage(
             requires={f"{name}[exists]": Responses().GOOD.status},
             status=lambda EXPORT_matches, **kwargs:
@@ -114,9 +112,10 @@ class OneOf(_ConditionalKey):
             message=lambda EXPORT_matches, **kwargs:
                 Responses().GOOD.msg if len(EXPORT_matches) == 1
                 else Responses().MULTIPLE_ONEOF.msg.format(
-                    EXPORT_matches,
-                    name,
-                    loc
+                    property="property" if len(origins) == 1 else "properties",
+                    options=", ".join(map(lambda x: f"'{x}'", origins)),
+                    loc=loc,
+                    matches=", ".join(map(lambda x: f"'{x}'", EXPORT_matches))
                 )
         )
 
@@ -157,7 +156,7 @@ class OneOf(_ConditionalKey):
                 f"{self.name}[exists]",
                 **{
                     f"{self.name}[exists]":
-                        self._arg_exists_hard(_loc, self.name)
+                        self._arg_exists_hard(_loc, self.get_origins(value))
                 }
             )
         else:
@@ -165,7 +164,7 @@ class OneOf(_ConditionalKey):
                 f"{self.name}[exists]",
                 **{
                     f"{self.name}[exists]":
-                        self._arg_exists_soft(_loc, self.name)
+                        self._arg_exists_soft()
                 }
             )
 
@@ -175,7 +174,9 @@ class OneOf(_ConditionalKey):
                 f"{self.name}[exclusive]",
                 **{
                     f"{self.name}[exclusive]":
-                        self._exclusive_match(_loc, self.name)
+                        self._exclusive_match(
+                            self.name, _loc, self.get_origins(value)
+                        )
                 }
             )
 

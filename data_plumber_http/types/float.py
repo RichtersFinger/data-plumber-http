@@ -30,9 +30,9 @@ class Float(DPType):
             return (
                 None,
                 Responses().BAD_VALUE.msg.format(
-                    json,
-                    loc,
-                    "one of " + ", ".join(f"'{v}'" for v in self._values)
+                    origin=json,
+                    loc=loc,
+                    expected="one of " + ", ".join(f"'{v}'" for v in self._values)
                 ),
                 Responses().BAD_VALUE.status
             )
@@ -42,9 +42,9 @@ class Float(DPType):
             return (
                 None,
                 Responses().BAD_VALUE.msg.format(
-                    json,
-                    loc,
-                    f"a number in the range [{self._range[0]}, {self._range[1]}]"
+                    origin=json,
+                    loc=loc,
+                    expected=f"a number in the range [{self._range[0]}, {self._range[1]}]"
                 ),
                 Responses().BAD_VALUE.status
             )

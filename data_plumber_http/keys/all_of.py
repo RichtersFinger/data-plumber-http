@@ -63,9 +63,10 @@ class AllOf(_ConditionalKey):
             message=lambda primer, EXPORT_options, **kwargs:
                 Responses().GOOD.msg if len(primer) == 0
                 else Responses().MISSING_REQUIRED_ALLOF.msg.format(
-                    name,
-                    loc,
-                    ", ".join(
+                    property="property" if len(primer) == 1 else "properties",
+                    missing=", ".join(map(lambda x: f"'{x}'", primer)),
+                    loc=loc,
+                    details=", ".join(
                         map(
                             lambda x: f"'{x}': \"{EXPORT_options[x].last_message}\"",
                             primer
@@ -75,7 +76,7 @@ class AllOf(_ConditionalKey):
         )
 
     @staticmethod
-    def _arg_exists_soft(loc, name):
+    def _arg_exists_soft():
         def status(primer, json, EXPORT_options, **kwargs):
             if len(primer) == 0:
                 return Responses().GOOD.status
@@ -91,9 +92,7 @@ class AllOf(_ConditionalKey):
             for k in json:
                 if k in EXPORT_options:
                     return Responses().BAD_VALUE_IN_ALLOF.msg.format(
-                        name,
-                        loc,
-                        EXPORT_options[k].last_message
+                        child=EXPORT_options[k].last_message
                     )
             return Responses().MISSING_OPTIONAL.msg
 
@@ -149,7 +148,7 @@ class AllOf(_ConditionalKey):
                 f"{self.name}[exists]",
                 **{
                     f"{self.name}[exists]":
-                        self._arg_exists_soft(_loc, self.name)
+                        self._arg_exists_soft()
                 }
             )
 

@@ -31,7 +31,7 @@ class String(DPType):
             return (
                 None,
                 Responses().BAD_VALUE.msg.format(
-                    json, loc, f"pattern '{self._pattern}'"
+                    origin=json, loc=loc, expected=f"pattern '{self._pattern}'"
                 ),
                 Responses().BAD_VALUE.status
             )
@@ -41,9 +41,9 @@ class String(DPType):
             return (
                 None,
                 Responses().BAD_VALUE.msg.format(
-                    json,
-                    loc,
-                    "one of " + ", ".join(f"'{v}'" for v in self._enum)
+                    origin=json,
+                    loc=loc,
+                    expected="one of " + ", ".join(f"'{v}'" for v in self._enum)
                 ),
                 Responses().BAD_VALUE.status
             )

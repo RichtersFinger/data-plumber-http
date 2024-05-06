@@ -68,8 +68,8 @@ class Property(DPKey):
             message=lambda primer, **kwargs:
                 Responses().GOOD.msg if primer
                 else Responses().MISSING_REQUIRED.msg.format(
-                    loc,
-                    k.origin
+                    loc=loc,
+                    origin=k.origin
                 )
         )
 
@@ -95,10 +95,10 @@ class Property(DPKey):
             message=lambda primer, json, **kwargs:
                 Responses().GOOD.msg if primer
                 else Responses().BAD_TYPE.msg.format(
-                    k.origin,
-                    loc,
-                    v.__name__,
-                    type(json[k.origin]).__name__
+                    origin=k.origin,
+                    loc=loc,
+                    xp_type=v.__name__,
+                    fnd_type=type(json[k.origin]).__name__
                 )
         )
 

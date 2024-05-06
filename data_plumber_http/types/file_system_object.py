@@ -61,9 +61,9 @@ class FileSystemObject(DPType):
                 return (
                     None,
                     Responses().BAD_VALUE.msg.format(
-                        json,
-                        loc,
-                        f"path relative to '{self._relative_to}' ({exc_info})"
+                        origin=json,
+                        loc=loc,
+                        expected=f"path relative to '{self._relative_to}' ({exc_info})"
                     ),
                     Responses().BAD_VALUE.status
                 )
@@ -76,12 +76,14 @@ class FileSystemObject(DPType):
                 if req:
                     return (
                         None,
-                        Responses().RESOURCE_NOT_FOUND.msg.format(json, loc),
+                        Responses().RESOURCE_NOT_FOUND.msg.format(
+                            res=json, loc=loc
+                        ),
                         Responses().RESOURCE_NOT_FOUND.status
                     )
                 return (
                     None,
-                    Responses().CONFLICT.msg.format(json, loc),
+                    Responses().CONFLICT.msg.format(res=json, loc=loc),
                     Responses().CONFLICT.status
                 )
         return (
