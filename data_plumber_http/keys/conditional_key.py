@@ -24,6 +24,12 @@ class _ConditionalKey(DPKey):
             )
         return type(dpkey)(name=dpkey.name, required=True)
 
+    def get_origins(self, value):
+        origins = []
+        for k, v in value.items():
+            origins.extend(k.get_origins(v))
+        return origins
+
     @classmethod
     def _run_options(cls, options, loc: str) -> Stage:
         pa = Pipearray(
