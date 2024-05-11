@@ -157,6 +157,15 @@ class Responses:
             self._warn(name)
             getattr(self, name).status = status
 
+    def get(self, name: str) -> ProblemInfo:
+        """
+        Returns the `ProblemInfo`-object associated with `name`.
+
+        Keyword arguments:
+        name -- response name identifier
+        """
+        return getattr(self, name)
+
 
 # finalize initialization of singleton
 Responses()
