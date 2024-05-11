@@ -1,4 +1,4 @@
-from typing import TypeAlias, Mapping, Optional, Any
+from typing import TypeAlias, Mapping, Optional, Callable, Any
 
 from data_plumber import Pipeline, Stage
 from data_plumber.output import StageRecord
@@ -16,8 +16,8 @@ class Object(DPType):
     An `Object` corresponds to the JSON-type 'object'.
 
     Keyword arguments:
-    model -- data model for this `Object` (gets passed the entire output
-             of a validation-run as kwargs)
+    model -- data model or factory for this `Object` (gets passed the
+             entire output of a validation-run as kwargs)
              (default `None`; corresponds to dictionary)
     properties -- mapping for explicitly expected contents of this
                   `Object`
@@ -46,7 +46,7 @@ class Object(DPType):
 
     def __init__(
         self,
-        model: Optional[type] = None,
+        model: Optional[type | Callable[..., Any]] = None,
         properties: Optional[Properties] = None,
         additional_properties: Optional[bool | DPType] = None,
         accept_only: Optional[list[str]] = None,

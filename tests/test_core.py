@@ -269,6 +269,26 @@ def test_object_model():
     assert output.data.kwargs == {"model_arg": "test-string"}
 
 
+def test_object_model_as_factory():
+    """Test factory in argument `model` of `Object`."""
+    class SomeModel:
+        def __init__(self, model_arg1: str, model_arg2: int):
+            self.string = model_arg1
+            self.number = model_arg2
+    output = Object(
+        model=lambda model_arg1:
+            SomeModel(model_arg1=model_arg1, model_arg2=5),
+        properties={
+            Property(origin="string", name="model_arg1"): String()
+        }
+    ).assemble().run(json={"string": "test-string"})
+
+    assert output.last_status == Responses().GOOD.status
+    assert isinstance(output.data.value, SomeModel)
+    assert output.data.value.string == "test-string"
+    assert output.data.value.number == 5
+
+
 def test_object_model_missing_arg():
     """
     Test argument `model` of `Object` where model-object cannot be
