@@ -16,8 +16,6 @@ class _ConditionalKey(DPKey):
         This measure is required to get insightful status-response from
         `Pipearray`.
         """
-        # TODO: raise Error/warn if non-default settings for default
-        # etc. are used
         if isinstance(dpkey, Property):
             return Property(
                 origin=dpkey.origin, name=dpkey.name, required=True

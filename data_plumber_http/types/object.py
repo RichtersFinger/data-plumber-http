@@ -62,7 +62,7 @@ class Object(DPType):
         else:
             _properties = properties
         if _properties is not None \
-                and len(set(k.name for k in _properties)) < len(_properties):  # TODO: OneOf/AllOf
+                and len(set(k.name for k in _properties)) < len(_properties):
             names = set()
             raise ValueError(
                 "Conflicting property name(s) in Object: "
