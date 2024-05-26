@@ -67,6 +67,7 @@ from .integer import Integer
 from .null import Null
 from .object import Object
 from .string import String
+from .uri import Uri
 from .url import Url
 from .file_system_object import FileSystemObject
 # import last due to dependence on base-types
@@ -77,5 +78,5 @@ from .any import Any
 __all__ = [
     "DPType",
     "Any", "Array", "Boolean", "Float", "Integer", "Null", "Number", "Object",
-    "String", "Url", "FileSystemObject",
+    "String", "Uri", "Url", "FileSystemObject",
 ]
