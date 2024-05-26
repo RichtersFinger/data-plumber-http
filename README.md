@@ -155,7 +155,7 @@ A `Boolean` corresponds to the JSON-type 'boolean'.
 The types `Integer`, `Float`, and `Number` (the latter corresponding to the JSON-type 'number') represent numbers (integers, floating point numbers, and either of those, respectively).
 Their properties are
 * **values** list of values allowed in this field
-* **range_** tuple of lower and upper bound for values in this field
+* **min_value**, **min_value_invlusive**, **max_value**, **max_value_inclusive** configuration for accepted value ranges
 
 #### Any
 The `Any`-type can be used to indicate a field to be free-form.

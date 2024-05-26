@@ -219,19 +219,27 @@ def test_integer_values(json, status):
 
 
 @pytest.mark.parametrize(
-    ("json", "status"),
+    ("options", "json", "status"),
     [
-        (1, Responses().GOOD.status),
-        (2, Responses().GOOD.status),
-        (3, Responses().GOOD.status),
-        (0, Responses().BAD_VALUE.status),
+        ({"min_value": 1}, 2, Responses().GOOD.status),
+        ({"min_value": 1}, 1, Responses().BAD_VALUE.status),
+        ({"min_value": 1}, 0, Responses().BAD_VALUE.status),
+        ({"min_value_inclusive": 1}, 2, Responses().GOOD.status),
+        ({"min_value_inclusive": 1}, 1, Responses().GOOD.status),
+        ({"min_value_inclusive": 1}, 0, Responses().BAD_VALUE.status),
+        ({"max_value": 1}, 0, Responses().GOOD.status),
+        ({"max_value": 1}, 1, Responses().BAD_VALUE.status),
+        ({"max_value": 1}, 2, Responses().BAD_VALUE.status),
+        ({"max_value_inclusive": 1}, 0, Responses().GOOD.status),
+        ({"max_value_inclusive": 1}, 1, Responses().GOOD.status),
+        ({"max_value_inclusive": 1}, 2, Responses().BAD_VALUE.status),
     ]
 )
-def test_integer_range(json, status):
-    """Test property `range_` of `Integer`."""
+def test_integer_min_max_value(options, json, status):
+    """Test properties for value ranges of `Integer`."""
     output = Object(
         properties={
-            Property("field"): Integer(range_=[1, 3])
+            Property("field"): Integer(**options)
         }
     ).assemble().run(json={"field": json})
 
@@ -266,19 +274,27 @@ def test_float_values(json, status):
 
 
 @pytest.mark.parametrize(
-    ("json", "status"),
+    ("options", "json", "status"),
     [
-        (1.0, Responses().GOOD.status),
-        (2.0, Responses().GOOD.status),
-        (3.0, Responses().GOOD.status),
-        (0.0, Responses().BAD_VALUE.status),
+        ({"min_value": 1}, 2.0, Responses().GOOD.status),
+        ({"min_value": 1}, 1.0, Responses().BAD_VALUE.status),
+        ({"min_value": 1}, 0.0, Responses().BAD_VALUE.status),
+        ({"min_value_inclusive": 1}, 2.0, Responses().GOOD.status),
+        ({"min_value_inclusive": 1}, 1.0, Responses().GOOD.status),
+        ({"min_value_inclusive": 1}, 0.0, Responses().BAD_VALUE.status),
+        ({"max_value": 1}, 0.0, Responses().GOOD.status),
+        ({"max_value": 1}, 1.0, Responses().BAD_VALUE.status),
+        ({"max_value": 1}, 2.0, Responses().BAD_VALUE.status),
+        ({"max_value_inclusive": 1}, 0.0, Responses().GOOD.status),
+        ({"max_value_inclusive": 1}, 1.0, Responses().GOOD.status),
+        ({"max_value_inclusive": 1}, 2.0, Responses().BAD_VALUE.status),
     ]
 )
-def test_float_range(json, status):
-    """Test property `range_` of `Float`."""
+def test_float_min_max_value(options, json, status):
+    """Test properties for value ranges of `Float`."""
     output = Object(
         properties={
-            Property("field"): Float(range_=[1, 3])
+            Property("field"): Float(**options)
         }
     ).assemble().run(json={"field": json})
 
@@ -315,23 +331,39 @@ def test_number_values(json, status):
 
 
 @pytest.mark.parametrize(
-    ("json", "status"),
+    ("options", "json", "status"),
     [
-        (1, Responses().GOOD.status),
-        (1.0, Responses().GOOD.status),
-        (2, Responses().GOOD.status),
-        (2.0, Responses().GOOD.status),
-        (3, Responses().GOOD.status),
-        (3.0, Responses().GOOD.status),
-        (0, Responses().BAD_VALUE.status),
-        (0.0, Responses().BAD_VALUE.status),
+        ({"min_value": 1}, 2.0, Responses().GOOD.status),
+        ({"min_value": 1}, 1.0, Responses().BAD_VALUE.status),
+        ({"min_value": 1}, 0.0, Responses().BAD_VALUE.status),
+        ({"min_value": 1}, 2, Responses().GOOD.status),
+        ({"min_value": 1}, 1, Responses().BAD_VALUE.status),
+        ({"min_value": 1}, 0, Responses().BAD_VALUE.status),
+        ({"min_value_inclusive": 1}, 2.0, Responses().GOOD.status),
+        ({"min_value_inclusive": 1}, 1.0, Responses().GOOD.status),
+        ({"min_value_inclusive": 1}, 0.0, Responses().BAD_VALUE.status),
+        ({"min_value_inclusive": 1}, 2, Responses().GOOD.status),
+        ({"min_value_inclusive": 1}, 1, Responses().GOOD.status),
+        ({"min_value_inclusive": 1}, 0, Responses().BAD_VALUE.status),
+        ({"max_value": 1}, 0.0, Responses().GOOD.status),
+        ({"max_value": 1}, 1.0, Responses().BAD_VALUE.status),
+        ({"max_value": 1}, 2.0, Responses().BAD_VALUE.status),
+        ({"max_value": 1}, 0, Responses().GOOD.status),
+        ({"max_value": 1}, 1, Responses().BAD_VALUE.status),
+        ({"max_value": 1}, 2, Responses().BAD_VALUE.status),
+        ({"max_value_inclusive": 1}, 0.0, Responses().GOOD.status),
+        ({"max_value_inclusive": 1}, 1.0, Responses().GOOD.status),
+        ({"max_value_inclusive": 1}, 2.0, Responses().BAD_VALUE.status),
+        ({"max_value_inclusive": 1}, 0, Responses().GOOD.status),
+        ({"max_value_inclusive": 1}, 1, Responses().GOOD.status),
+        ({"max_value_inclusive": 1}, 2, Responses().BAD_VALUE.status),
     ]
 )
-def test_number_range(json, status):
-    """Test property `range_` of `Number`."""
+def test_number_min_max_value(options, json, status):
+    """Test properties for value ranges of `Number`."""
     output = Object(
         properties={
-            Property("field"): Number(range_=[1, 3])
+            Property("field"): Number(**options)
         }
     ).assemble().run(json={"field": json})
 
