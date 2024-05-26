@@ -460,10 +460,10 @@ def test_key_types_in_free_form_object(json, status):
         ({"str5": "string"}, Responses().GOOD.status),
     ]
 )
-def test_key_types_object_w_additional_properties(json, status):
+def test_key_types_object_w_additional_properties_true(json, status):
     """
     Test occurrence of different key-types in `Object` with
-    `additional_properties`.
+    `additional_properties=True`.
     """
     output = Object(
         properties={
@@ -483,6 +483,48 @@ def test_key_types_object_w_additional_properties(json, status):
             },
         },
         additional_properties=True
+    ).assemble().run(json=json)
+
+    assert output.last_status == status
+    if status == Responses().GOOD.status:
+        print(output.data.value)
+    else:
+        print(output.last_message)
+
+
+@pytest.mark.parametrize(
+    ("json", "status"),
+    [
+        ({"str": "string"}, Responses().GOOD.status),
+        ({"str2": "string"}, Responses().GOOD.status),
+        ({"str3": "string"}, Responses().GOOD.status),
+        ({"str4": "string"}, Responses().GOOD.status),
+        ({"str5": "string"}, Responses().UNKNOWN_PROPERTY.status),
+    ]
+)
+def test_key_types_object_w_additional_properties_false(json, status):
+    """
+    Test occurrence of different key-types in `Object` with
+    `additional_properties=False`.
+    """
+    output = Object(
+        properties={
+            OneOf("str"): {
+                Property("str"): String(),
+            },
+            AllOf("str2"): {
+                Property("str2"): String(),
+            },
+            OneOf("str3|str4"): {
+                AllOf("str3"): {
+                    Property("str3"): String(),
+                },
+                AllOf("str4"): {
+                    Property("str4"): String(),
+                },
+            },
+        },
+        additional_properties=False
     ).assemble().run(json=json)
 
     assert output.last_status == status

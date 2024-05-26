@@ -95,9 +95,12 @@ class Object(DPType):
             self._additional_properties = additional_properties
             self._additional_properties_typespec = None
             if not additional_properties:
-                self._accept_only = list(  # TODO: OneOf/AllOf
-                    p.origin for p in properties.keys()
-                ) if properties is not None else []
+                self._accept_only = list(set().union(
+                    *[
+                        k.get_origins(v)
+                        for k, v in properties.items()
+                    ]
+                )) if properties is not None else []
         else:
             self._additional_properties = True
             self._additional_properties_typespec = additional_properties
