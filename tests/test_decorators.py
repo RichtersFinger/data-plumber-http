@@ -1,8 +1,12 @@
 """
-Part of the test suite for data-plumber-flask.
+Part of the test suite for data-plumber-http.
 
 Run with
-pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types --cov=data_plumber_http.decorators
+pytest -v -s
+  --cov=data_plumber_http.keys
+  --cov=data_plumber_http.types
+  --cov=data_plumber_http.decorators
+  --cov=data_plumber_http.settings
 """
 
 from typing import Optional
@@ -11,7 +15,8 @@ import pytest
 from flask import Flask, Response
 
 from data_plumber_http.keys import Property
-from data_plumber_http.types import Responses, Object, String, Integer
+from data_plumber_http.types import Object, String, Integer
+from data_plumber_http.settings import Responses
 from data_plumber_http.decorators \
      import flask_handler, flask_args, flask_json
 
@@ -28,8 +33,8 @@ def _base_app():
 @pytest.mark.parametrize(
     ("arg", "status"),
     [
-        ("123", Responses.GOOD.status),
-        ("abc", Responses.BAD_VALUE.status)
+        ("123", Responses().GOOD.status),
+        ("abc", Responses().BAD_VALUE.status)
     ]
 )
 def test_flask_args_minimal(base_app, arg, status):
@@ -47,7 +52,7 @@ def test_flask_args_minimal(base_app, arg, status):
     def main(
         arg: Optional[str] = None
     ):
-        return Response(f"Got '{arg}'.", status=Responses.GOOD.status)
+        return Response(f"Got '{arg}'.", status=Responses().GOOD.status)
 
     client = base_app.test_client()
 
@@ -61,8 +66,8 @@ def test_flask_args_minimal(base_app, arg, status):
 @pytest.mark.parametrize(
     ("string", "status"),
     [
-        ("123", Responses.GOOD.status),
-        ("abc", Responses.BAD_VALUE.status)
+        ("123", Responses().GOOD.status),
+        ("abc", Responses().BAD_VALUE.status)
     ]
 )
 def test_flask_json_minimal(base_app, string, status):
@@ -80,7 +85,7 @@ def test_flask_json_minimal(base_app, string, status):
     def main(
         string: Optional[str] = None
     ):
-        return Response(f"Got '{string}'.", status=Responses.GOOD.status)
+        return Response(f"Got '{string}'.", status=Responses().GOOD.status)
 
     client = base_app.test_client()
 
@@ -108,7 +113,7 @@ def test_flask_json_multiple(base_app):
         string: Optional[str] = None,
         integer: Optional[int] = None,
     ):
-        return Response("OK", status=Responses.GOOD.status)
+        return Response("OK", status=Responses().GOOD.status)
 
     client = base_app.test_client()
 
@@ -117,7 +122,7 @@ def test_flask_json_multiple(base_app):
         json={"string": "string1", "integer": 0}
     )
 
-    assert response.status_code == Responses.GOOD.status
+    assert response.status_code == Responses().GOOD.status
 
 
 @pytest.mark.parametrize(
@@ -140,7 +145,7 @@ def test_flask_json_missing_required(base_app, required):
     def main(
         string: Optional[str] = None
     ):
-        return Response("OK", status=Responses.GOOD.status)
+        return Response("OK", status=Responses().GOOD.status)
 
     client = base_app.test_client()
 
@@ -150,7 +155,7 @@ def test_flask_json_missing_required(base_app, required):
     )
 
     if not required:
-        assert response.status_code == Responses.GOOD.status
+        assert response.status_code == Responses().GOOD.status
     else:
-        assert response.status_code == Responses.MISSING_REQUIRED.status
+        assert response.status_code == Responses().MISSING_REQUIRED.status
         print(response.data.decode())

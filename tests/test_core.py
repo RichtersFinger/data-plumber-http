@@ -1,8 +1,12 @@
 """
-Part of the test suite for data-plumber-flask.
+Part of the test suite for data-plumber-http.
 
 Run with
-pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types --cov=data_plumber_http.decorators
+pytest -v -s
+  --cov=data_plumber_http.keys
+  --cov=data_plumber_http.types
+  --cov=data_plumber_http.decorators
+  --cov=data_plumber_http.settings
 """
 
 import pytest
@@ -10,7 +14,7 @@ from data_plumber import Pipeline
 
 from data_plumber_http.keys import Property
 from data_plumber_http.types import Object, String
-from data_plumber_http.types import Responses
+from data_plumber_http.settings import Responses
 
 
 def test_property_empty_name():
@@ -34,22 +38,6 @@ def test_property_empty_name():
         p.name = ""
 
 
-def test_property_fill_with_none():
-    """Test argument `fill_with_none` of `Property`."""
-
-    output = Object(
-        properties={Property("string", fill_with_none=False): String()}
-    ).assemble().run(json={"another-string": "test-string"})
-    assert output.data.value == {}
-    assert output.last_status == Responses.GOOD.status
-
-    output = Object(
-        properties={Property("string", fill_with_none=True): String()}
-    ).assemble().run(json={"another-string": "test-string"})
-    assert output.data.value == {"string": None}
-    assert output.last_status == Responses.GOOD.status
-
-
 def test_property_validation_only():
     """Test argument `validation_only` of `Property`."""
 
@@ -57,13 +45,13 @@ def test_property_validation_only():
         properties={Property("string", validation_only=False): String()}
     ).assemble().run(json={"string": "test-string"})
     assert output.data.value == {"string": "test-string"}
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
 
     output = Object(
         properties={Property("string", validation_only=True): String()}
     ).assemble().run(json={"string": "test-string"})
     assert output.data.value == {}
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
 
 
 def test_property_required():
@@ -78,7 +66,7 @@ def test_property_required():
 
     output = pipeline.run(json={"another-string": "test-string"})
     assert output.data.value == None
-    assert output.last_status == Responses.MISSING_REQUIRED.status
+    assert output.last_status == Responses().MISSING_REQUIRED.status
     assert "some-string" in output.last_message
     assert "missing" in output.last_message
 
@@ -107,7 +95,7 @@ def test_property_default(default, json):
         }
     ).assemble().run(json=json)
 
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert output.data.value.get("string") == json.get("string") or default
 
 
@@ -123,7 +111,7 @@ def test_property_default_callable():
         }
     ).assemble().run(json={}, default_string="more-text")
 
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert output.data.value.get("string") == "more-text"
 
 
@@ -149,7 +137,7 @@ def test_property_required_default(default):
         assert "string" in output.data.value
         assert output.data.value["string"] == default
     else:
-        assert output.last_status == Responses.MISSING_REQUIRED.status
+        assert output.last_status == Responses().MISSING_REQUIRED.status
         assert "missing" in output.last_message.lower()
         assert "string" in output.last_message
         assert output.data.value == None
@@ -164,7 +152,7 @@ def test_property_origin_name():
         }
     ).assemble().run(json={"string": "test-string"})
 
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert output.data.value == {"model_arg": "test-string"}
 
 
@@ -178,7 +166,7 @@ def test_dptype_custom():
                     f"Character 'a' in field '{loc}' not allowed (got '{json}').",
                     422
                 )
-            return (self.TYPE(json), Responses.GOOD.msg, Responses.GOOD.status)
+            return (self.TYPE(json), Responses().GOOD.msg, Responses().GOOD.status)
 
     p = Object(
         properties={
@@ -187,7 +175,7 @@ def test_dptype_custom():
     ).assemble()
 
     output = p.run(json={"string": "test-string"})
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert output.data.value == {"string": "test-string"}
 
     output = p.run(json={"string": "test-string with 'a'"})
@@ -212,11 +200,11 @@ def test_object_pipeline_run_basic():
 
     output = pipeline.run(json={"string": "test-string"})
     assert output.data.value == {"string": "test-string"}
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
 
     output = pipeline.run(json={"another-string": "test-string"})
     assert output.data.value == {}
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
 
 
 def test_object_pipeline_run_bad_type():
@@ -226,7 +214,7 @@ def test_object_pipeline_run_bad_type():
 
     output = pipeline.run(json={"string": 0})
     assert output.data.value == None
-    assert output.last_status == Responses.BAD_TYPE.status
+    assert output.last_status == Responses().BAD_TYPE.status
     print(output.last_message)
 
 
@@ -260,7 +248,7 @@ def test_object_model():
         }
     ).assemble().run(json={"string": "test-string"})
 
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert isinstance(output.data.value, dict)
     assert output.data.value == {"model_arg": "test-string"}
 
@@ -275,10 +263,30 @@ def test_object_model():
         }
     ).assemble().run(json={"string": "test-string"})
 
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert isinstance(output.data.value, SomeModel)
     assert output.data.value.string == "test-string"
     assert output.data.kwargs == {"model_arg": "test-string"}
+
+
+def test_object_model_as_factory():
+    """Test factory in argument `model` of `Object`."""
+    class SomeModel:
+        def __init__(self, model_arg1: str, model_arg2: int):
+            self.string = model_arg1
+            self.number = model_arg2
+    output = Object(
+        model=lambda model_arg1:
+            SomeModel(model_arg1=model_arg1, model_arg2=5),
+        properties={
+            Property(origin="string", name="model_arg1"): String()
+        }
+    ).assemble().run(json={"string": "test-string"})
+
+    assert output.last_status == Responses().GOOD.status
+    assert isinstance(output.data.value, SomeModel)
+    assert output.data.value.string == "test-string"
+    assert output.data.value.number == 5
 
 
 def test_object_model_missing_arg():
@@ -298,7 +306,7 @@ def test_object_model_missing_arg():
         }
     ).assemble().run(json={})
 
-    assert output.last_status == Responses.MISSING_REQUIRED.status
+    assert output.last_status == Responses().MISSING_REQUIRED.status
 
 
 @pytest.mark.parametrize(
@@ -310,7 +318,7 @@ def test_object_model_missing_arg():
                     "string": "test-string",
                     "another-object": {"string": "more-text"}
                 }
-            }, Responses.GOOD.status
+            }, Responses().GOOD.status
         ),
         (
             {
@@ -318,29 +326,29 @@ def test_object_model_missing_arg():
                     "string": "test-string",
                     "another-object": {}
                 }
-            }, Responses.GOOD.status
+            }, Responses().GOOD.status
         ),
         (
             {
                 "some-object": {
                     "another-object": {"string": "more-text"}
                 }
-            }, Responses.GOOD.status
+            }, Responses().GOOD.status
         ),
         (
             {
                 "some-object": {
                     "string": "test-string",
                 }
-            }, Responses.MISSING_REQUIRED.status
+            }, Responses().MISSING_REQUIRED.status
         ),
         (
             {
                 "some-object": {}
-            }, Responses.MISSING_REQUIRED.status
+            }, Responses().MISSING_REQUIRED.status
         ),
         (
-            {}, Responses.GOOD.status
+            {}, Responses().GOOD.status
         ),
     ]
 )
@@ -364,7 +372,7 @@ def test_object_nested(json, status):
 
     output = pipeline.run(json=json)
     assert output.last_status == status
-    if output.last_status == Responses.GOOD.status:
+    if output.last_status == Responses().GOOD.status:
         assert output.data.value == json
     else:
         print(output.last_message)
@@ -412,13 +420,13 @@ def test_object_nested_deeply(required):
     output = pipeline.run(json=json)
     if required:
         print(output.last_message)
-        assert output.last_status == Responses.MISSING_REQUIRED.status
+        assert output.last_status == Responses().MISSING_REQUIRED.status
         assert "some-object.another-object.yet-more-objects" \
             in output.last_message
         assert "string3" \
             in output.last_message
     else:
-        assert output.last_status == Responses.GOOD.status
+        assert output.last_status == Responses().GOOD.status
         assert output.data.value == json
 
 
@@ -446,7 +454,7 @@ def test_object_nested_with_default():
         }
     }
     output = pipeline.run(json=json)
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert output.data.value == {
         "some-object": {
             "another-object": None
@@ -476,7 +484,31 @@ def test_object_unknown(accept, json):
         accept_only=accept
     ).assemble().run(json=json)
     if accept is not None and "another-string" in json:
-        assert output.last_status == Responses.UNKNOWN_PROPERTY.status
+        assert output.last_status == Responses().UNKNOWN_PROPERTY.status
         assert "another-string" in output.last_message
     else:
-        assert output.last_status == Responses.GOOD.status
+        assert output.last_status == Responses().GOOD.status
+
+
+def test_object_constructed_from_other_object():
+    """Test property `properties` of `Object`."""
+    obj1 = Object(
+        properties={
+            Property("string"): String()
+        }
+    )
+    obj2 = Object(
+        properties={
+            Property("another-string"): String()
+        }
+    )
+
+    json = {
+        "string": "string2",
+        "another-string": "string2"
+    }
+    output = Object(
+        properties=obj1.properties | obj2.properties
+    ).assemble().run(json=json)
+    assert output.last_status == Responses().GOOD.status
+    assert output.data.value == json

@@ -5,7 +5,7 @@ from functools import wraps
 from flask import request, Response
 from data_plumber import Pipeline
 
-from data_plumber_http.types import Responses
+from data_plumber_http.settings import Responses
 
 
 def flask_args():
@@ -55,7 +55,7 @@ def flask_handler(handler: Pipeline, json: Callable[[], dict]):
             output = handler.run(
                 json=json()
             )
-            if output.last_status != Responses.GOOD.status:
+            if output.last_status != Responses().GOOD.status:
                 return Response(
                     response=output.last_message,
                     status=output.last_status,

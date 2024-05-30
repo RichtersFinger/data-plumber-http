@@ -1,15 +1,19 @@
 """
-Part of the test suite for data-plumber-flask.
+Part of the test suite for data-plumber-http.
 
 Run with
-pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types --cov=data_plumber_http.decorators
+pytest -v -s
+  --cov=data_plumber_http.keys
+  --cov=data_plumber_http.types
+  --cov=data_plumber_http.decorators
+  --cov=data_plumber_http.settings
 """
 
 import pytest
 
 from data_plumber_http.keys import Property
 from data_plumber_http.types import Object, String
-from data_plumber_http.types import Responses
+from data_plumber_http.settings import Responses
 
 
 def test_object_additional_properties_free_form():
@@ -54,21 +58,21 @@ def test_object_free_form_full(json):
         }
     ).assemble().run(json={"object": json})
 
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert output.data.value["object"] == json
 
 
 @pytest.mark.parametrize(
     ("json", "status"),
     [
-        ({"string": "string1", "object": {}}, Responses.GOOD.status),
-        ({"object": {}}, Responses.GOOD.status),
-        ({"object": {"another-string": "string2"}}, Responses.GOOD.status),
+        ({"string": "string1", "object": {}}, Responses().GOOD.status),
+        ({"object": {}}, Responses().GOOD.status),
+        ({"object": {"another-string": "string2"}}, Responses().GOOD.status),
         (
             {"object": {"another-string": "string2", "something-else": True}},
-            Responses.GOOD.status
+            Responses().GOOD.status
         ),
-        ({"object": {"another-string": False}}, Responses.BAD_TYPE.status),
+        ({"object": {"another-string": False}}, Responses().BAD_TYPE.status),
     ]
 )
 def test_object_free_form_partial(json, status):
@@ -87,7 +91,7 @@ def test_object_free_form_partial(json, status):
     ).assemble().run(json=json)
 
     assert output.last_status == status
-    if status == Responses.GOOD.status:
+    if status == Responses().GOOD.status:
         assert output.data.value == json
     else:
         print(output.last_message)
@@ -107,5 +111,5 @@ def test_object_free_form_with_model():
         }
     ).assemble().run(json={"object": json})
 
-    assert output.last_status == Responses.GOOD.status
+    assert output.last_status == Responses().GOOD.status
     assert output.data.value["object"].kwargs == json

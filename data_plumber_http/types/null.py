@@ -1,10 +1,10 @@
-from typing import Any, Optional
+from typing import Any
 from types import NoneType
 
-from . import _DPType, Responses
+from . import DPType, Responses
 
 
-class Null(_DPType):
+class Null(DPType):
     """
     A `Null`-object corresponds to the JSON 'null'-value.
     """
@@ -13,6 +13,6 @@ class Null(_DPType):
     def make(self, json, loc: str) -> tuple[Any, str, int]:
         return (
             None,
-            Responses.GOOD.msg,
-            Responses.GOOD.status
+            Responses().GOOD.msg,
+            Responses().GOOD.status
         )

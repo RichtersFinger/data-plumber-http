@@ -1,10 +1,10 @@
-from typing import Any, Optional, Callable
+from typing import Any, Optional
 from pathlib import Path
 
-from . import _DPType, Responses
+from . import DPType, Responses
 
 
-class FileSystemObject(_DPType):
+class FileSystemObject(DPType):
     """
     A `FileSystemObject` corresponds to a `pathlib.Path` that is given
     either absolute or relative to the cwd. The output is a
@@ -60,12 +60,12 @@ class FileSystemObject(_DPType):
             except ValueError as exc_info:
                 return (
                     None,
-                    Responses.BAD_VALUE.msg.format(
-                        json,
-                        loc,
-                        f"path relative to '{self._relative_to}' ({exc_info})"
+                    Responses().BAD_VALUE.msg.format(
+                        origin=json,
+                        loc=loc,
+                        expected=f"path relative to '{self._relative_to}' ({exc_info})"
                     ),
-                    Responses.BAD_VALUE.status
+                    Responses().BAD_VALUE.status
                 )
         if self._cwd is not None:
             path = self._cwd / path
@@ -74,18 +74,28 @@ class FileSystemObject(_DPType):
                 continue
             if getattr(path, step)() != req:
                 if req:
+                    if path.exists():
+                        return (
+                            None,
+                            Responses().BAD_RESOURCE.msg.format(
+                                res=json, loc=loc, details=f"expected '{step}'"
+                            ),
+                            Responses().BAD_RESOURCE.status
+                        )
                     return (
                         None,
-                        Responses.RESOURCE_NOT_FOUND.msg.format(json, loc),
-                        Responses.RESOURCE_NOT_FOUND.status
+                        Responses().RESOURCE_NOT_FOUND.msg.format(
+                            res=json, loc=loc
+                        ),
+                        Responses().RESOURCE_NOT_FOUND.status
                     )
                 return (
                     None,
-                    Responses.CONFLICT.msg.format(json, loc),
-                    Responses.CONFLICT.status
+                    Responses().CONFLICT.msg.format(res=json, loc=loc),
+                    Responses().CONFLICT.status
                 )
         return (
             path,
-            Responses.GOOD.msg,
-            Responses.GOOD.status
+            Responses().GOOD.msg,
+            Responses().GOOD.status
         )

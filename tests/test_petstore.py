@@ -1,8 +1,12 @@
 """
-Part of the test suite for data-plumber-flask.
+Part of the test suite for data-plumber-http.
 
 Run with
-pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types --cov=data_plumber_http.decorators
+pytest -v -s
+  --cov=data_plumber_http.keys
+  --cov=data_plumber_http.types
+  --cov=data_plumber_http.decorators
+  --cov=data_plumber_http.settings
 """
 
 from typing import Optional

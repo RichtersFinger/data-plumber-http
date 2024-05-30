@@ -1,10 +1,10 @@
 from typing import Any, Optional
 import re
 
-from . import _DPType, Responses
+from . import DPType, Responses
 
 
-class String(_DPType):
+class String(DPType):
     """
     A `String` corresponds to the JSON-type 'string'.
 
@@ -30,25 +30,25 @@ class String(_DPType):
                 and not re.fullmatch(self._pattern, json):
             return (
                 None,
-                Responses.BAD_VALUE.msg.format(
-                    json, loc, f"pattern '{self._pattern}'"
+                Responses().BAD_VALUE.msg.format(
+                    origin=json, loc=loc, expected=f"pattern '{self._pattern}'"
                 ),
-                Responses.BAD_VALUE.status
+                Responses().BAD_VALUE.status
             )
         # validate enum
         if self._enum is not None \
                 and json not in self._enum:
             return (
                 None,
-                Responses.BAD_VALUE.msg.format(
-                    json,
-                    loc,
-                    "one of " + ", ".join(f"'{v}'" for v in self._enum)
+                Responses().BAD_VALUE.msg.format(
+                    origin=json,
+                    loc=loc,
+                    expected="one of " + ", ".join(f"'{v}'" for v in self._enum)
                 ),
-                Responses.BAD_VALUE.status
+                Responses().BAD_VALUE.status
             )
         return (
             self.TYPE(json),
-            Responses.GOOD.msg,
-            Responses.GOOD.status
+            Responses().GOOD.msg,
+            Responses().GOOD.status
         )

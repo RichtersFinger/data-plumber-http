@@ -1,33 +1,42 @@
-from typing import TypeAlias, Mapping, Optional, Any
+from typing import TypeAlias, Mapping, Optional, Callable, Any
 
 from data_plumber import Pipeline, Stage
+from data_plumber.output import StageRecord
 
-from data_plumber_http.keys import _DPKey, Property
-from . import _DPType, Responses, Output
+from data_plumber_http.output import Output
+from data_plumber_http.keys import DPKey, Property
+from . import DPType, Responses
 
 
-Properties: TypeAlias = Mapping[_DPKey, "_DPType | Properties"]
+Properties: TypeAlias = Mapping[DPKey, "DPType | Properties"]
 
 
-class Object(_DPType):
+class Object(DPType):
     """
     An `Object` corresponds to the JSON-type 'object'.
 
     Keyword arguments:
-    model -- data model for this `Object` (gets passed the entire output
-             of a validation-run as kwargs)
+    model -- data model or factory for this `Object` (gets passed the
+             entire output of a validation-run as kwargs)
              (default `None`; corresponds to dictionary)
     properties -- mapping for explicitly expected contents of this
                   `Object`
                   (default `None`)
-    additional_properties -- type for implicitly expected contents of
-                             this `Object` (mutually exclusive with
-                             `accept_only`)
-                             (default `None`)
-    accept_only -- if set, on execution a `json` is rejected with 400
-                   status if it contains a key that is not in
-                   `accept_only` (mutually exclusive with
-                   `additional_properties`)
+
+    Mutually exclusive arguments:
+    additional_properties -- either boolean or field type (`DPType`)
+                             boolean: if `True`, ignore any additional
+                             fields; if `False`, respond with
+                             `Responses().UNKNOWN_PROPERTY` for fields
+                             that are not listed in `properties`
+                             type: required type specification for
+                             implicitly expected contents of this
+                             `Object`; corresponding fields in `json`
+                             are added to the output
+                             (default `None`; treated like `True`)
+    accept_only -- if set, on execution a `json` is rejected with
+                   `Responses().UNKNOWN_PROPERTY` if it contains a key
+                   that is not in `accept_only`
                    (default `None`)
     free_form -- if `True`, accept and use any content that has not been
                  defined explicitly via `properties`
@@ -37,24 +46,30 @@ class Object(_DPType):
 
     def __init__(
         self,
-        model: Optional[type] = None,
+        model: Optional[type | Callable[..., Any]] = None,
         properties: Optional[Properties] = None,
-        additional_properties: Optional[_DPType] = None,
+        additional_properties: Optional[bool | DPType] = None,
         accept_only: Optional[list[str]] = None,
         free_form: bool = False
     ) -> None:
         self._model = model or dict
-        self._properties = properties or {}
+        self.properties = properties or {}
 
-        if properties is not None \
-                and len(set(k.name for k in properties.keys())) < len(properties):
+        if properties is not None:
+            _properties: Optional[list[Property]] = list(
+                k for k in properties.keys() if isinstance(k, Property)
+            )
+        else:
+            _properties = properties
+        if _properties is not None \
+                and len(set(k.name for k in _properties)) < len(_properties):
             names = set()
             raise ValueError(
                 "Conflicting property name(s) in Object: "
                 + str(
                     [
-                        k.name for k in properties.keys()
-                        if k.name in names or names.add(k.name)
+                        k.name for k in _properties
+                        if k.name in names or names.add(k.name)  # type: ignore [func-returns-value]
                     ]
                 )
             )
@@ -74,9 +89,21 @@ class Object(_DPType):
                 f"Value of 'accept_only' ({accept_only}) "
                 + f"conflicts with value of 'free_form' ({free_form})."
             )
-        self._additional_properties = additional_properties
-        self._accept_only = accept_only
         self._free_form = free_form
+        self._accept_only = accept_only
+        if isinstance(additional_properties, bool):
+            self._additional_properties = additional_properties
+            self._additional_properties_typespec = None
+            if not additional_properties:
+                self._accept_only = list(set().union(
+                    *[
+                        k.get_origins(v)
+                        for k, v in properties.items()
+                    ]
+                )) if properties is not None else []
+        else:
+            self._additional_properties = True
+            self._additional_properties_typespec = additional_properties
 
     @staticmethod
     def _reject_unknown_args(accepted, loc):
@@ -86,117 +113,16 @@ class Object(_DPType):
                 None
             ),
             status=lambda primer, **kwargs:
-                Responses.GOOD.status if not primer
-                else Responses.UNKNOWN_PROPERTY.status,
+                Responses().GOOD.status if not primer
+                else Responses().UNKNOWN_PROPERTY.status,
             message=lambda primer, **kwargs:
-                Responses.GOOD.msg if not primer
-                else Responses.UNKNOWN_PROPERTY.msg.format(
-                    primer,
-                    loc,
-                    ", ".join(map(lambda x: f"'{x}'", accepted))
+                Responses().GOOD.msg if not primer
+                else Responses().UNKNOWN_PROPERTY.msg.format(
+                    origin=primer,
+                    loc=loc,
+                    accepted="accepted: " + ", ".join(map(lambda x: f"'{x}'", accepted))
+                        if len(accepted) > 0 else "none accepted"
                 )
-        )
-
-    @staticmethod
-    def _arg_exists_hard(k, loc):
-        return Stage(
-            primer=lambda json, **kwargs: k.origin in json,
-            status=lambda primer, **kwargs:
-                Responses.GOOD.status if primer
-                else Responses.MISSING_REQUIRED.status,
-            message=lambda primer, **kwargs:
-                Responses.GOOD.msg if primer
-                else Responses.MISSING_REQUIRED.msg.format(
-                    loc,
-                    k.origin
-                )
-        )
-
-    @staticmethod
-    def _arg_exists_soft(k):
-        return Stage(
-            primer=lambda json, **kwargs: k.origin in json,
-            status=lambda primer, **kwargs:
-                Responses.GOOD.status if primer
-                else Responses.MISSING_OPTIONAL.status,
-            message=lambda primer, **kwargs:
-                "" if primer else Responses.MISSING_OPTIONAL.msg
-        )
-
-    @staticmethod
-    def _arg_has_type(k, v, loc):
-        return Stage(
-            requires={k.name: Responses.GOOD.status},
-            primer=lambda json, **kwargs: isinstance(json[k.origin], v.TYPE),
-            status=lambda primer, **kwargs:
-                Responses.GOOD.status if primer else Responses.BAD_TYPE.status,
-            message=lambda primer, json, **kwargs:
-                Responses.GOOD.msg if primer
-                else Responses.BAD_TYPE.msg.format(
-                    k.origin,
-                    loc,
-                    v.__name__,
-                    type(json[k.origin]).__name__
-                )
-        )
-
-    @staticmethod
-    def _make_instance(k, v, loc):
-        return Stage(
-            requires={k.name: Responses.GOOD.status},
-            primer=lambda json, **kwargs:
-                v.make(json[k.origin], loc),
-            export=lambda primer, **kwargs:
-                {f"EXPORT_{k.name}": primer[0]}
-                if primer[2] == Responses.GOOD.status
-                else {},
-            status=lambda primer, **kwargs: primer[2],
-            message=lambda primer, **kwargs: primer[1]
-        )
-
-    @staticmethod
-    def _set_default(k):
-        if k.default is not None:
-            # default is set
-            return Stage(
-                requires={k.name: Responses.MISSING_OPTIONAL.status},
-                primer=k.default
-                    if callable(k.default)
-                    else lambda **kwargs: k.default,
-                export=lambda primer, **kwargs:
-                    {f"EXPORT_{k.name}": primer},
-                status=lambda **kwargs: Responses.GOOD.status,
-                message=lambda **kwargs: Responses.GOOD.msg
-            )
-        # default to None or omit completely
-        return Stage(
-            requires={k.name: Responses.MISSING_OPTIONAL.status},
-            export=lambda primer, **kwargs:
-                {f"EXPORT_{k.name}": None}
-                if k.fill_with_none
-                else {},
-            status=lambda **kwargs: Responses.GOOD.status,
-            message=lambda **kwargs: Responses.GOOD.msg
-        )
-
-    @staticmethod
-    def _output(k):
-        return Stage(
-            primer=lambda **kwargs:
-                f"EXPORT_{k.name}" in kwargs,
-            action=lambda out, primer, **kwargs:
-                [
-                    out.update({"kwargs": {}})
-                    if "kwargs" not in out
-                    else None,
-                    out.kwargs.update(
-                        {k.name: kwargs.get(f"EXPORT_{k.name}")}
-                        if primer
-                        else {}
-                    )
-                ],
-            status=lambda **kwargs: Responses.GOOD.status,
-            message=lambda **kwargs: Responses.GOOD.msg
         )
 
     @staticmethod
@@ -210,7 +136,7 @@ class Object(_DPType):
 
         Keyword arguments:
         keys -- list of field names defined in the original `Object`
-        dptype -- `_DPType` of the additional properties
+        dptype -- `DPType` of the additional properties
         loc -- position in original `json`
         """
         return Stage(
@@ -223,7 +149,7 @@ class Object(_DPType):
                     additional := [k for k in json.keys() if k not in keys]
                 ) > 0
                 else None,  # return None if Object is empty > simply return with
-                            # Responses.GOOD
+                            # Responses().GOOD
             action=lambda out, primer, **kwargs:
                 [
                     out.update({"kwargs": {}})
@@ -231,12 +157,12 @@ class Object(_DPType):
                     else None,
                     out.kwargs.update(primer.data.get("kwargs", {}))
                 ]
-                if primer and primer.last_status == Responses.GOOD.status
+                if primer and primer.last_status == Responses().GOOD.status
                 else None,
             status=lambda primer, **kwargs:
-                primer.last_status if primer else Responses.GOOD.status,
+                primer.last_status if primer else Responses().GOOD.status,
             message=lambda primer, **kwargs:
-                primer.last_message if primer else Responses.GOOD.msg,
+                primer.last_message if primer else Responses().GOOD.msg,
         )
 
     @staticmethod
@@ -259,8 +185,8 @@ class Object(_DPType):
                     else None,
                     out.kwargs.update(primer)
                 ],
-            status=lambda **kwargs: Responses.GOOD.status,
-            message=lambda **kwargs: Responses.GOOD.msg,
+            status=lambda **kwargs: Responses().GOOD.status,
+            message=lambda **kwargs: Responses().GOOD.msg,
         )
 
     def make(self, json, loc: str) -> tuple[Any, str, int]:
@@ -270,7 +196,7 @@ class Object(_DPType):
         Returns with a tuple of
         * object if valid or None,
         * problem description if invalid,
-        * status code (`Responses.GOOD` if valid)
+        * status code (`Responses().GOOD` if valid)
 
         Keyword arguments:
         json -- data to generate object from
@@ -281,11 +207,11 @@ class Object(_DPType):
         return (
             (
                 output.data.value
-                if output.last_status == Responses.GOOD.status
+                if output.last_status == Responses().GOOD.status
                 else None
             ),
-            output.last_message or Responses.GOOD.msg,
-            output.last_status or Responses.GOOD.status
+            output.last_message or Responses().GOOD.msg,
+            output.last_status or Responses().GOOD.status
         )
 
     def assemble(self, _loc: Optional[str] = None) -> Pipeline:
@@ -293,8 +219,14 @@ class Object(_DPType):
         Returns `Pipeline` that processes a `json`-input.
         """
         def finalizer(data, records, **kwargs):
-            if records[-1].status == Responses.GOOD.status:
-                data.value = self._model(**data.kwargs)
+            try:
+                if records[-1].status == Responses().GOOD.status:
+                    data.value = self._model(**data.kwargs)
+            except IndexError:  # empty Object
+                records.append(StageRecord(
+                    0, "finalizer", Responses().GOOD.msg, Responses().GOOD.status
+                ))
+                data.value = self._model()
         p = Pipeline(
             exit_on_status=lambda status: status >= 400,
             initialize_output=Output,
@@ -306,65 +238,41 @@ class Object(_DPType):
                 __loc,
                 **{__loc: self._reject_unknown_args(self._accept_only, __loc)}
             )
-        elif self._additional_properties is not None:
+        if self._additional_properties_typespec is not None:
             # additional properties
             p.append(
                 f"{__loc}[additionalProperties]",
                 **{
                     f"{__loc}[additionalProperties]":
                         self._process_additional_properties(
-                            [k.origin for k in self._properties.keys()],
-                            self._additional_properties,
+                            list(set().union(
+                                *[
+                                    k.get_origins(v)
+                                    for k, v in self.properties.items()
+                                ]
+                            )),
+                            self._additional_properties_typespec,
                             _loc
                         )
                 }
             )
-        elif self._free_form:
+        if self._free_form:
             # free-form
             p.append(
                 f"{__loc}[freeForm]",
                 **{
                     f"{__loc}[freeForm]":
                         self._process_free_form(
-                            [k.origin for k in self._properties.keys()]
+                            list(set().union(
+                                *[
+                                    k.get_origins(v)
+                                    for k, v in self.properties.items()
+                                ]
+                            ))
                         )
                 }
             )
-        for k, v in self._properties.items():
-            # k.name: validate existence
-            if k.required and k.default is None:
-                p.append(
-                    k.name,
-                    **{k.name: self._arg_exists_hard(k, __loc)}
-                )
-            else:
-                p.append(k.name, **{k.name: self._arg_exists_soft(k)})
-            # {k.name}[type]: validate type
-            p.append(
-                f"{k.name}[type]",
-                **{f"{k.name}[type]": self._arg_has_type(k, v, __loc)}
-            )
-            # {k.name}[dptype]: validate, make, and export instance as
-            #                   f"EXPORT_{k.name}" (if valid)
-            p.append(
-                f"{k.name}[dptype]",
-                **{f"{k.name}[dptype]": self._make_instance(
-                    k, v, (_loc or "") + "." + k.origin
-                )}
-            )
-            if k.validation_only:
-                continue
-            # {k.name}[default]: apply default if required (or set None
-            #   if property has fill_with_none set) and export as
-            #   f"EXPORT_{k.name}"
-            p.append(
-                f"{k.name}[default]",
-                **{f"{k.name}[default]": self._set_default(k)}
-            )
-            # {k.name}[output]: output to data
-            p.append(
-                f"{k.name}[output]",
-                **{f"{k.name}[output]": self._output(k)}
-            )
+        for k, v in self.properties.items():
+            p.append(k.assemble(v, _loc))
 
         return p

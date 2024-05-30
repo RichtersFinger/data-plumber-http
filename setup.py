@@ -37,15 +37,18 @@ setup(
     },
     python_requires=">=3.10",
     install_requires=requirements,
-    extras_require={
-        "tests": ["pytest>=7.4,<8", "pytest-cov>=4.1,<5", "flask>=3"],
-    },
     packages=[
         "data_plumber_http",
         "data_plumber_http.types",
         "data_plumber_http.keys",
         "data_plumber_http.decorators",
     ],
+    package_data={
+        "data_plumber_http": [
+            "data_plumber_http/py.typed",
+        ],
+    },
+    include_package_data=True,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",

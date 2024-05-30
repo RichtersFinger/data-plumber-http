@@ -1,9 +1,9 @@
 from typing import Any, Optional
 
-from . import _DPType, Responses
+from . import DPType, Responses
 
 
-class Array(_DPType):
+class Array(DPType):
     """
     An `Array` corresponds to the JSON-type 'array'.
 
@@ -13,15 +13,15 @@ class Array(_DPType):
     """
     TYPE = list
 
-    def __init__(self, items: Optional[_DPType] = None):
+    def __init__(self, items: Optional[DPType] = None):
         self._items = items
 
     def make(self, json, loc: str) -> tuple[Any, str, int]:
         if self._items is None:
             return (
                 json,
-                Responses.GOOD.msg,
-                Responses.GOOD.status
+                Responses().GOOD.msg,
+                Responses().GOOD.status
             )
         array = []
         for element in json:
@@ -31,14 +31,14 @@ class Array(_DPType):
                     f"Element in '{loc}' has bad type. Expected "
                     + f"'{self._items.__name__}' but found "
                     + f"'{type(element).__name__}'.",
-                    Responses.BAD_TYPE.status
+                    Responses().BAD_TYPE.status
                 )
             child = self._items.make(element, loc)
-            if child[2] != Responses.GOOD.status:
+            if child[2] != Responses().GOOD.status:
                 return (None, child[1], child[2])
             array.append(child[0])
         return (
             array,
-            Responses.GOOD.msg,
-            Responses.GOOD.status
+            Responses().GOOD.msg,
+            Responses().GOOD.status
         )
