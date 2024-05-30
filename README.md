@@ -171,9 +171,11 @@ See also [Union Types](#union-types).
 An `Object` corresponds to the JSON-type 'object' and is the base for any input handler-model.
 Calling `assemble` on an `Object`-instance returns a `data-plumber`-`Pipeline`.
 A `Pipeline.run` expects the keyword argument `json`, a dictionary containing the input data.
+The result of a `run` contains an `Output`-object in its `data` property (view [`data-plumber`-documentation](https://github.com/RichtersFinger/data-plumber/blob/main/docs/output.md) for details).
+This `Output` contains the `kwargs` (parsed and validated input) whereas in `value` the final result (dictionary or initialized `model`, if configured) is stored.
 
-Its regular properties are
-* **model** data model (python class) for this `Object` or factory function (gets passed the entire output of a `Pipeline`-run)
+An `Object`'s properties are
+* **model** data model (python class) for this `Object` or factory function (gets passed all generated `kwargs` of the associated `Pipeline`-run; the instance is then stored in `data.value`)
 * **properties** mapping for explicitly expected contents of this `Object`; this mapping is stored as the public property `properties`
 
 Additionally, there are different options to configure how unknown properties in the input are treated.
