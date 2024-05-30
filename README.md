@@ -3,11 +3,13 @@
 # data-plumber-http
 This extension to the [`data-plumber`](https://github.com/RichtersFinger/data-plumber)-framework provides a mechanism to validate and unmarshal data in http-requests using a highly declarative format.
 If a problem occurs, a suitable status-code and message containing a brief description of the problem are generated automatically.
-It is
-* configurable: automatically generated messages and status codes can be customized
-* extendable: custom data structures can be defined without much overhead
 
-The extension also defines a decorator for a seamless integration with `flask`-web apps.
+It offers
+* a **minimalistic**, highly **intuitive**, and **declarative** approach to request-validation/unmarshalling
+* **configurability**: automatically generated messages and status codes can be customized
+* **extendability**: custom data structures can be defined without much overhead
+* **integration**: decorator for a seamless integration with `flask`-web apps
+* high test-coverage
 
 ## Contents
 1. [Install](#install)
