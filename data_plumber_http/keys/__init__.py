@@ -1,10 +1,10 @@
-from typing import TypeAlias, Mapping
+from typing import TypeAlias, Mapping, Optional
 import abc
 
 from data_plumber import Pipeline
 
 
-Values: TypeAlias = "DPType" | Mapping["DPKey", "Values"]
+Values: TypeAlias = "DPType" | Mapping["DPKey", "Values"]  # type: ignore[name-defined]
 
 
 class DPKey(metaclass=abc.ABCMeta):
@@ -18,7 +18,7 @@ class DPKey(metaclass=abc.ABCMeta):
         )
 
     @abc.abstractmethod
-    def assemble(self, value: Values, loc: str) -> Pipeline:
+    def assemble(self, value: Values, loc: Optional[str]) -> Pipeline:
         """
         Returns `Pipeline` that processes the given `value` for this key.
         """

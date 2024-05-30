@@ -84,7 +84,7 @@ class Responses:
         return cls._instance
 
     def _warn(self, name: str) -> None:
-        if self.warn_on_change and name in self.INTERNAL_RESPONSES:
+        if self.warn_on_change and name in self.INTERNAL_RESPONSES:  # type: ignore[attr-defined]
             warnings.warn(
                 f"Changing internally defined response '{name}' can break "
                 + "functionality. (Set 'Responses().warn_on_change' to 'False'"
