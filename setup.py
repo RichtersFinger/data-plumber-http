@@ -43,6 +43,12 @@ setup(
         "data_plumber_http.keys",
         "data_plumber_http.decorators",
     ],
+    package_data={
+        "data_plumber_http": [
+            "data_plumber_http/py.typed",
+        ],
+    },
+    include_package_data=True,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
