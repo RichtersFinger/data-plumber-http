@@ -312,3 +312,23 @@ class MyResource(DPType):
 
 Note that changing the status codes of pre-defined responses into a different range (e.g. 4XX- to 2XX-range) can break the extension's functionality.
 Corresponding warnings can be disabled by changing the `warn_on_change` property of `Responses()`.
+
+### Response-Usage Map
+`data-plumber-http` ships with the following set of `Responses`:
+
+| Response | status | used in case of |
+| -------- | ------- | ------- |
+| `GOOD` | 0 | input is valid |
+| `MISSING_OPTIONAL` | 1 | missing optional field |
+| `UNKNOWN_PROPERTY` | 400 | additional field (not allowed) |
+| `MISSING_REQUIRED` | 400 | missing required field |
+| `BAD_TYPE` | 422 | input exists but has wrong type |
+| `BAD_VALUE` | 422 | input exists, has correct type, but value is not allowed (e.g. `String(enum=[...])` where input is not in `enum`) |
+| `RESOURCE_NOT_FOUND` | 404 | input references a non-existing/unavailable resource |
+| `BAD_RESOURCE` | 422 | input references resource that exists, but its properties differ from expectation (e.g. directory for `FileSystemObject(is_file=True)`) |
+| `CONFLICT` | 409 | input references resource that does already/does not exist (e.g. directory for `FileSystemObject(is_dir=True)`) |
+| `MISSING_REQUIRED_ONEOF` | 400 | missing required field within a `OneOf(required=True)` |
+| `BAD_VALUE_IN_ONEOF` | - | see `BAD_VALUE`; status and message are inherited |
+| `MULTIPLE_ONEOF` | 400 | ambiguous matching situation for a key `OneOf(exclusive=True)` |
+| `MISSING_REQUIRED_ALLOF` | 400 | missing field within an `AllOf(required=True)` |
+| `BAD_VALUE_IN_ALLOF` | - | see `BAD_VALUE`; status and message are inherited |
