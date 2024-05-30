@@ -23,7 +23,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip setuptools
-        pip install ".[tests]"
+        pip install .
+        pip install -r tests/test_requirements.txt
     - name: Test with pytest
       run: |
-        pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types --cov=data_plumber_http.decorators
+        pytest -v -s --cov=data_plumber_http.keys --cov=data_plumber_http.types --cov=data_plumber_http.decorators --cov=data_plumber_http.settings
