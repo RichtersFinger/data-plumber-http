@@ -12,6 +12,7 @@ The extension also defines a decorator for a seamless integration with `flask`-w
 ## Contents
 1. [Install](#install)
 1. [Usage Example](#usage-example)
+1. [Migration from Previous Version](#migration-from-previous-version)
 1. [Documentation](#documentation)
 1. [Changelog](CHANGELOG.md)
 
@@ -97,6 +98,16 @@ Based on the example-request body given in the Pet Store API (`{"id": 10, "name"
 ```
 "OK: doggie, ['string'], 10, test_pet_post.<locals>.Category(id_=1, name='Dogs'), [test_pet_post.<locals>.Tag(id_=0, name='string')], available"
 ```
+
+## Migration from Previous Version
+With the new major version 1, there are some minor breaking changes:
+* some import paths or class names have been changed:
+  * `_DPType` has been moved to `DPType`
+  * `Responses` has been moved to `data_plumber_http.settings`
+* `Responses` has been replaced by the singleton `Responses()` (view details [here](#response-configuration))
+* `Property`'s constructor argument `fill_with_none` has been removed; the same behavior can be achieved by using the `default` argument, i.e. `default=lambda **kwargs: None`
+* all `Number`-type `DPType`s got their `range`-argument replaced by the more granular options `min_value`, `min_value_inclusive`, `max_value`, and `max_value_inclusive`
+
 
 ## Documentation
 This section gives a brief overview of the features included in this package.
