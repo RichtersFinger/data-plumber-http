@@ -13,18 +13,18 @@ import pytest
 
 from data_plumber_http.keys import Property
 from data_plumber_http.types \
-    import Boolean, String, Object, _DPType
+    import Boolean, String, Object, DPType
 from data_plumber_http.settings import Responses
 
 
 def test_union_type():
-    """Test typing for union operator with `_DPType`."""
-    assert isinstance(Boolean() | String(), _DPType)
+    """Test typing for union operator with `DPType`."""
+    assert isinstance(Boolean() | String(), DPType)
 
 
 def test_union_type_threefold():
-    """Test typing for union operator with `_DPType`."""
-    assert isinstance(Boolean() | String() | Object(), _DPType)
+    """Test typing for union operator with `DPType`."""
+    assert isinstance(Boolean() | String() | Object(), DPType)
 
 
 @pytest.mark.parametrize(

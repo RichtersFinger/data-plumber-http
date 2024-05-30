@@ -27,9 +27,6 @@ class DPKey(metaclass=abc.ABCMeta):
         )
 
 
-_DPKey = DPKey  # legacy
-
-
 from .property import Property
 from .one_of import OneOf
 from .all_of import AllOf

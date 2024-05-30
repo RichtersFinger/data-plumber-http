@@ -1,8 +1,7 @@
 from typing import Any
 import abc
 
-from data_plumber_http.settings \
-    import Responses, ProblemInfo as _ProblemInfo  # latter import for legacy
+from data_plumber_http.settings import Responses
 
 
 class DPType(metaclass=abc.ABCMeta):
@@ -55,9 +54,6 @@ class DPType(metaclass=abc.ABCMeta):
                     + f"'{type(json).__name__}' not in '{self.__name__}'."
                 )
         return _()
-
-
-_DPType = DPType  # legacy
 
 
 from .array import Array
