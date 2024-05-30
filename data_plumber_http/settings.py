@@ -44,8 +44,12 @@ class Responses:
         "Could not find requested resource '{res}' given in '{loc}'.",
         404
     )
+    BAD_RESOURCE = ProblemInfo(
+        "Requested resource '{res}' in '{loc}' does not match expected properties ({details}).",
+        422
+    )
     CONFLICT = ProblemInfo(
-        "Resource '{res}' given in '{loc}' conflicts with existing resource.",
+        "Requested resource '{res}' given in '{loc}' conflicts with existing resource.",
         409
     )
     MISSING_REQUIRED_ONEOF = ProblemInfo(

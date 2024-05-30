@@ -564,7 +564,18 @@ def test_uri_return_parsed():
         ({"is_file": True}, __file__, Responses().GOOD.status),
         ({"is_dir": False}, __file__, Responses().GOOD.status),
         ({"is_file": False}, __file__, Responses().CONFLICT.status),
-        ({"is_dir": True}, __file__, Responses().RESOURCE_NOT_FOUND.status),
+        (
+            {"is_file": True},
+            str(Path(__file__).parent),
+            Responses().BAD_RESOURCE.status
+        ),
+        ({"is_dir": True}, __file__, Responses().BAD_RESOURCE.status),
+        ({"is_fifo": True}, __file__, Responses().BAD_RESOURCE.status),
+        (
+            {"is_file": True},
+            __file__ + ".x",
+            Responses().RESOURCE_NOT_FOUND.status
+        ),
         (
             {"relative_to": Path("tests")},
             str(Path(__file__).relative_to(Path(__file__).parents[1])),
@@ -584,7 +595,8 @@ def test_uri_return_parsed():
     ],
     ids=[
         "basic", "exists-good", "is_file-good", "is_dir-good",
-        "is_file-conflict", "is_dir-not found", "relative_to-relative-good",
+        "is_file-conflict", "is_dir-but file", "is_fifo-but file",
+        "is_file-but dir", "is_file-not found", "relative_to-relative-good",
         "relative_to-absolute-bad", "relative_to-mixed-bad", "cwd",
     ]
 )

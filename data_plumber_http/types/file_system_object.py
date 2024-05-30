@@ -74,6 +74,14 @@ class FileSystemObject(DPType):
                 continue
             if getattr(path, step)() != req:
                 if req:
+                    if path.exists():
+                        return (
+                            None,
+                            Responses().BAD_RESOURCE.msg.format(
+                                res=json, loc=loc, details=f"expected '{step}'"
+                            ),
+                            Responses().BAD_RESOURCE.status
+                        )
                     return (
                         None,
                         Responses().RESOURCE_NOT_FOUND.msg.format(
