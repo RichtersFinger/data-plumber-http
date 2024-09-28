@@ -25,7 +25,7 @@ def flask_values():
 
 
 def flask_json():
-    return request.json
+    return request.get_json(silent=True) or {}
 
 
 def flask_handler(handler: Pipeline, json: Callable[[], dict]):
