@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.1] - 2024-09-28
+
+### Fixed
+
+- fixed `flask_json` for requests without json-data (`f9991cb`)
+
 ## [1.0.0] - 2024-05-30
 
 ### Changed
