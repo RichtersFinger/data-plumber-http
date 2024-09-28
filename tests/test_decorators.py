@@ -12,7 +12,7 @@ pytest -v -s
 from typing import Optional
 
 import pytest
-from flask import Flask, Response
+from flask import Flask, Response, request
 
 from data_plumber_http.keys import Property
 from data_plumber_http.types import Object, String, Integer
@@ -94,6 +94,39 @@ def test_flask_json_minimal(base_app, string, status):
     assert response.status_code == status
     assert string in response.data.decode()
     print(response.data.decode())
+
+
+@pytest.mark.parametrize(
+    ("get_json", "error"),
+    [
+        (lambda: request.json, True),
+        (flask_json, False),
+    ],
+    ids=["unpatched", "patch"]
+)
+def test_flask_json_bad_mimetype(base_app, get_json, error):
+    """
+    Test input handler for json where no json is sent.
+
+    This test demonstrates the fix for
+    https://github.com/RichtersFinger/data-plumber-http/issues/6
+    """
+
+    @base_app.route("/", methods=["POST"])
+    @flask_handler(
+        handler=Object().assemble(),
+        json=get_json
+    )
+    def main():
+        return Response("Got it.", status=200)
+
+    client = base_app.test_client()
+
+    response = client.post("/")
+    if error:
+        assert response.status_code == 415
+    else:
+        assert response.status_code == 200
 
 
 def test_flask_json_multiple(base_app):
