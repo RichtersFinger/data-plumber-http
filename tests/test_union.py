@@ -1,125 +1,126 @@
 """
-Part of the test suite for data-plumber-http.
-
-Run with
-pytest -v -s
-  --cov=data_plumber_http.keys
-  --cov=data_plumber_http.types
-  --cov=data_plumber_http.decorators
-  --cov=data_plumber_http.settings
+Tests dedicated to the `Union` operator.
 """
 
-import pytest
+from unittest import TestCase
 
 from data_plumber_http.keys import Property
-from data_plumber_http.types \
-    import Boolean, String, Object, DPType
+from data_plumber_http.types import Boolean, String, Object, DPType
 from data_plumber_http.settings import Responses
 
 
-def test_union_type():
+class TestDPTypeUnion(TestCase):
     """Test typing for union operator with `DPType`."""
-    assert isinstance(Boolean() | String(), DPType)
+
+    def test_twofold(self):
+        """Twofold."""
+        self.assertIsInstance(Boolean() | String(), DPType)
+
+    def test_threefold(self):
+        """Threefold."""
+        self.assertIsInstance(Boolean() | String() | Object(), DPType)
 
 
-def test_union_type_threefold():
-    """Test typing for union operator with `DPType`."""
-    assert isinstance(Boolean() | String() | Object(), DPType)
-
-
-@pytest.mark.parametrize(
-    ("json", "error"),
-    [
-        ("string", False),
-        (True, False),
-        ({}, True),
-    ],
-    ids=["string", "boolean", "object"]
-)
-def test_union_type_make(json, error):
+class TestDPTypeMake(TestCase):
     """Test method `make` of union-type."""
-    if error:
-        with pytest.raises(ValueError) as exc_info:
-            (Boolean() | String()).make(json, ".")
-        print(exc_info)
-    else:
-        assert (Boolean() | String()).make(json, ".") \
-            == (json, Responses().GOOD.msg, Responses().GOOD.status)
+
+    def test_twofold(self):
+        """Twofold."""
+        for id_, json, error in [
+            ("string", "string", False),
+            ("boolean", True, False),
+            ("object", {}, True),
+        ]:
+            with self.subTest(id=id_, json=json, error=error):
+                if error:
+                    with self.assertRaises(ValueError) as exc_info:
+                        (Boolean() | String()).make(json, ".")
+                    print(exc_info)
+                else:
+                    self.assertEqual(
+                        (Boolean() | String()).make(json, "."),
+                        (json, Responses().GOOD.msg, Responses().GOOD.status),
+                    )
+
+    def test_threefold(self):
+        """Threefold."""
+        for id_, json, error in [
+            ("string", "string", False),
+            ("boolean", True, False),
+            ("object", {}, False),
+            ("list", [], True),
+        ]:
+            with self.subTest(id=id_, json=json, error=error):
+                if error:
+                    with self.assertRaises(ValueError) as exc_info:
+                        (Boolean() | String() | Object(free_form=True)).make(
+                            json, "."
+                        )
+                    print(exc_info)
+                else:
+                    self.assertEqual(
+                        (Boolean() | String() | Object(free_form=True)).make(
+                            json, "."
+                        ),
+                        (json, Responses().GOOD.msg, Responses().GOOD.status),
+                    )
 
 
-@pytest.mark.parametrize(
-    ("json", "error"),
-    [
-        ("string", False),
-        (True, False),
-        ({}, False),
-        ([], True),
-    ],
-    ids=["string", "boolean", "object", "list"]
-)
-def test_union_type_make_threefold(json, error):
-    """Test method `make` of union-type."""
-    if error:
-        with pytest.raises(ValueError) as exc_info:
-            (Boolean() | String() | Object(free_form=True)).make(json, ".")
-        print(exc_info)
-    else:
-        assert (Boolean() | String() | Object(free_form=True)).make(json, ".") \
-            == (json, Responses().GOOD.msg, Responses().GOOD.status)
-
-
-@pytest.mark.parametrize(
-    ("json", "status"),
-    [
-        ({"str-or-bool": "string"}, Responses().GOOD.status),
-        ({"str-or-bool": True}, Responses().GOOD.status),
-        ({"str-or-bool": {}}, Responses().BAD_TYPE.status),
-    ],
-    ids=["string", "boolean", "object"]
-)
-def test_union_in_object_validation(json, status):
+class TestObjectValidation(TestCase):
     """Test defining union-property in `Object`-properties."""
 
-    output = Object(
-        properties={Property("str-or-bool"): String() | Boolean()}
-    ).assemble().run(json=json)
+    def test_twofold(self):
+        """Twofold."""
+        for id_, json, status in [
+            ("string", {"str-or-bool": "string"}, Responses().GOOD.status),
+            ("boolean", {"str-or-bool": True}, Responses().GOOD.status),
+            ("object", {"str-or-bool": {}}, Responses().BAD_TYPE.status),
+        ]:
+            with self.subTest(id=id_, json=json, status=status):
+                output = (
+                    Object(
+                        properties={
+                            Property("str-or-bool"): String() | Boolean()
+                        }
+                    )
+                    .assemble()
+                    .run(json=json)
+                )
 
-    assert output.last_status == status
-    if status == Responses().GOOD.status:
-        assert output.data.value == json
-    else:
-        print(output.last_message)
+                self.assertEqual(output.last_status, status)
+                if status == Responses().GOOD.status:
+                    self.assertEqual(output.data.value, json)
+                else:
+                    print(output.last_message)
 
+    def test_threefold_associative(self):
+        """Associativity."""
+        for id_, json, status in [
+            ("string", {"str-or-bool": "string"}, Responses().GOOD.status),
+            ("boolean", {"str-or-bool": True}, Responses().GOOD.status),
+            (
+                "object",
+                {"str-or-bool": {"field1": "value1"}},
+                Responses().GOOD.status,
+            ),
+        ]:
+            for type_ in [
+                (String() | Boolean()) | Object(free_form=True),
+                String() | (Boolean() | Object(free_form=True)),
+                (String() | Object(free_form=True)) | Boolean(),
+                Object(free_form=True) | (String() | Boolean()),
+            ]:
+                with self.subTest(
+                    id=id_, json=json, status=status, type_=type_
+                ):
+                    output = (
+                        Object(properties={Property("str-or-bool"): type_})
+                        .assemble()
+                        .run(json=json)
+                    )
 
-@pytest.mark.parametrize(
-    ("json", "status"),
-    [
-        ({"str-or-bool": "string"}, Responses().GOOD.status),
-        ({"str-or-bool": True}, Responses().GOOD.status),
-        ({"str-or-bool": {"field1": "value1"}}, Responses().GOOD.status),
-    ],
-    ids=["string", "boolean", "object"]
-)
-@pytest.mark.parametrize(
-    ("type_"),
-    [
-        (String() | Boolean()) | Object(free_form=True),
-        String() | (Boolean() | Object(free_form=True)),
-        (String() | Object(free_form=True)) | Boolean(),
-        Object(free_form=True) | (String() | Boolean()),
-    ]
-)
-def test_union_in_object_validation_threefold_associative(json, status, type_):
-    """Test defining union-property in `Object`-properties."""
-
-    output = Object(
-        properties={
-            Property("str-or-bool"): type_
-        }
-    ).assemble().run(json=json)
-
-    assert output.last_status == status
-    if status == Responses().GOOD.status:
-        assert output.data.value == json
-    else:
-        print(output.last_message)
+                    self.assertEqual(output.last_status, status)
+                    if status == Responses().GOOD.status:
+                        self.assertEqual(output.data.value, json)
+                    else:
+                        print(output.last_message)
