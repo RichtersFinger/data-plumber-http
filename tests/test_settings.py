@@ -1,12 +1,5 @@
 """
-Part of the test suite for data-plumber-http.
-
-Run with
-pytest -v -s
-  --cov=data_plumber_http.keys
-  --cov=data_plumber_http.types
-  --cov=data_plumber_http.decorators
-  --cov=data_plumber_http.settings
+Test for `Settings` singleton.
 """
 
 from unittest import mock, TestCase
