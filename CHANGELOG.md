@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.2] - 2026-07-15
+
+### Fixed
+
+- migrated from `pytest` to `unittest`
+
 ## [1.0.1] - 2024-09-28
 
 ### Fixed

@@ -336,3 +336,13 @@ Corresponding warnings can be disabled by changing the `warn_on_change` property
 | `MULTIPLE_ONEOF` | 400 | ambiguous matching situation for a key `OneOf(exclusive=True)` |
 | `MISSING_REQUIRED_ALLOF` | 400 | missing field within an `AllOf(required=True)` |
 | `BAD_VALUE_IN_ALLOF` | - | see `BAD_VALUE`; status and message are inherited |
+
+## Tests
+
+Run tests locally after cloning this repository by entering
+```bash
+# install package and dependencies
+pip install . -r tests/tests_requirements.txt
+# run
+python -m unittest discover tests/
+```
