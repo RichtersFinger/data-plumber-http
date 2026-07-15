@@ -74,8 +74,8 @@ class TestProperty(TestCase):
     def test_default(self):
         """Argument `default`."""
         for default in ["default-text", None]:
-            for json_val in [{"string": "test-string"}, {}]:
-                with self.subTest(default=default, json=json_val):
+            for json in [{"string": "test-string"}, {}]:
+                with self.subTest(default=default, json=json):
                     output = (
                         Object(
                             properties={
@@ -83,7 +83,7 @@ class TestProperty(TestCase):
                             }
                         )
                         .assemble()
-                        .run(json=json_val)
+                        .run(json=json)
                     )
 
                     self.assertEqual(
@@ -91,7 +91,7 @@ class TestProperty(TestCase):
                     )
                     self.assertEqual(
                         output.data.value.get("string"),
-                        json_val.get("string") or default,
+                        json.get("string") or default,
                     )
 
     def test_default_callable(self):
@@ -400,8 +400,8 @@ class TestObjectNested(TestCase):
             ({}, Responses().GOOD.status),
         ]
 
-        for json_val, status in params:
-            with self.subTest(json=json_val, status=status):
+        for json, status in params:
+            with self.subTest(json=json, status=status):
                 pipeline = Object(
                     properties={
                         Property("some-object"): Object(
@@ -417,10 +417,10 @@ class TestObjectNested(TestCase):
                     }
                 ).assemble()
 
-                output = pipeline.run(json=json_val)
+                output = pipeline.run(json=json)
                 self.assertEqual(output.last_status, status)
                 if output.last_status == Responses().GOOD.status:
-                    self.assertDictEqual(output.data.value, json_val)
+                    self.assertDictEqual(output.data.value, json)
                 else:
                     print(output.last_message)
                     self.assertIn(".some-object", output.last_message)
@@ -493,8 +493,8 @@ class TestObjectNested(TestCase):
             }
         ).assemble()
 
-        json_val = {"some-object": {"string1": "a"}}
-        output = pipeline.run(json=json_val)
+        json = {"some-object": {"string1": "a"}}
+        output = pipeline.run(json=json)
         self.assertEqual(output.last_status, Responses().GOOD.status)
         self.assertDictEqual(
             output.data.value, {"some-object": {"another-object": None}}
@@ -507,17 +507,17 @@ class TestObjectAcceptOnly(TestCase):
     def test_unknown(self):
         """Property `accept_only`."""
         for accept in [["string"], None]:
-            for json_val in [{}, {"another-string": "test-string"}]:
-                with self.subTest(accept=accept, json=json_val):
+            for json in [{}, {"another-string": "test-string"}]:
+                with self.subTest(accept=accept, json=json):
                     output = (
                         Object(
                             properties={Property("string"): String()},
                             accept_only=accept,
                         )
                         .assemble()
-                        .run(json=json_val)
+                        .run(json=json)
                     )
-                    if accept is not None and "another-string" in json_val:
+                    if accept is not None and "another-string" in json:
                         self.assertEqual(
                             output.last_status,
                             Responses().UNKNOWN_PROPERTY.status,

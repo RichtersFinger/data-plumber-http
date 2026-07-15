@@ -24,27 +24,27 @@ class TestObjectFreeForm(TestCase):
 
     def test_full(self):
         """Full evaluation."""
-        for json_val in [
+        for json in [
             {},
             {"string": "string1"},
             {"string": "string1", "boolean": True},
             {"string": "string1", "object": {"string": "string2"}},
         ]:
-            with self.subTest(json=json_val):
+            with self.subTest(json=json):
                 output = (
                     Object(
                         properties={Property("object"): Object(free_form=True)}
                     )
                     .assemble()
-                    .run(json={"object": json_val})
+                    .run(json={"object": json})
                 )
 
                 self.assertEqual(output.last_status, Responses().GOOD.status)
-                self.assertDictEqual(output.data.value["object"], json_val)
+                self.assertDictEqual(output.data.value["object"], json)
 
     def test_partial(self):
         """Partial evaluation."""
-        for json_val, status in [
+        for json, status in [
             ({"string": "string1", "object": {}}, Responses().GOOD.status),
             ({"object": {}}, Responses().GOOD.status),
             (
@@ -65,7 +65,7 @@ class TestObjectFreeForm(TestCase):
                 Responses().BAD_TYPE.status,
             ),
         ]:
-            with self.subTest(json=json_val, status=status):
+            with self.subTest(json=json, status=status):
                 output = (
                     Object(
                         properties={
@@ -79,12 +79,12 @@ class TestObjectFreeForm(TestCase):
                         }
                     )
                     .assemble()
-                    .run(json=json_val)
+                    .run(json=json)
                 )
 
                 self.assertEqual(output.last_status, status)
                 if status == Responses().GOOD.status:
-                    self.assertDictEqual(output.data.value, json_val)
+                    self.assertDictEqual(output.data.value, json)
                 else:
                     print(output.last_message)
 
@@ -97,7 +97,7 @@ class TestObjectFreeForm(TestCase):
             def __init__(self, **kwargs):
                 self.kwargs = kwargs
 
-        json_val = {"string": "string1", "object": {"string": "string2"}}
+        json = {"string": "string1", "object": {"string": "string2"}}
         output = (
             Object(
                 properties={
@@ -105,8 +105,8 @@ class TestObjectFreeForm(TestCase):
                 }
             )
             .assemble()
-            .run(json={"object": json_val})
+            .run(json={"object": json})
         )
 
         self.assertEqual(output.last_status, Responses().GOOD.status)
-        self.assertDictEqual(output.data.value["object"].kwargs, json_val)
+        self.assertDictEqual(output.data.value["object"].kwargs, json)

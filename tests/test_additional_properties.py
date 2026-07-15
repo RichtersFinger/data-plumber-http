@@ -127,7 +127,7 @@ class TestObjectAdditionalProperties(TestCase):
         }
         additional_properties_cases = [True, False]
 
-        for json_id, json_val in jsons.items():
+        for json_id, json in jsons.items():
             for additional_properties in additional_properties_cases:
                 with self.subTest(
                     json=json_id, additional_properties=additional_properties
@@ -138,12 +138,12 @@ class TestObjectAdditionalProperties(TestCase):
                             additional_properties=additional_properties,
                         )
                         .assemble()
-                        .run(json=json_val)
+                        .run(json=json)
                     )
 
                     if output.last_status != Responses().GOOD.status:
                         print(output.last_message)
-                    if "string" in json_val or additional_properties:
+                    if "string" in json or additional_properties:
                         self.assertEqual(
                             output.last_status, Responses().GOOD.status
                         )
