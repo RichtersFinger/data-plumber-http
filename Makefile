@@ -33,7 +33,7 @@ install: up
 	${PYTHON_SHELL} pip install .
 
 test: install
-	${PYTHON_SHELL} sh -c "pip install pytest && /tmp/docker-python-base/bin/pytest $(ARGS)"
+	${PYTHON_SHELL} sh -c "pip install -r tests/test_requirements.txt && python -m unittest discover tests/ $(ARGS)"
 
 build-dist: up
 	${PYTHON_SHELL} sh -c "pip install wheel==0.47.0 setuptools==82.0.1 && python3 setup.py sdist bdist_wheel"
